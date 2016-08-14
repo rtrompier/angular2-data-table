@@ -99,10 +99,6 @@ function webpackConfig(options = {}) {
         root: root(),
         verbose: false,
         dry: false
-      }),
-
-      new ProgressBarPlugin({
-        format: chalk.yellow.bold('Webpack Building...') + ' [:bar] ' + chalk.green.bold(':percent') + ' (:elapsed seconds)'
       })
     ],
 
