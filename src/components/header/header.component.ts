@@ -2,9 +2,7 @@ import {
   Component, Output, ElementRef, Renderer,
   EventEmitter, Input, HostBinding, ChangeDetectionStrategy
 } from '@angular/core';
-
-import { translateXY } from '../../utils';
-import { columnsByPin, columnGroupWidths } from '../../utils';
+import { columnsByPin, columnGroupWidths, columnsByPinArr, translateXY } from '../../utils';
 
 @Component({
   selector: 'datatable-header',
@@ -15,7 +13,7 @@ import { columnsByPin, columnGroupWidths } from '../../utils';
       orderable
       (onReorder)="columnReordered($event)">
       <div
-        *ngFor="let colGroup of columnsByPin"
+        *ngFor="let colGroup of columnsByPin; trackBy: colGroup?.type"
         [class]="'datatable-row-' + colGroup.type"
         [ngStyle]="stylesByGroup(colGroup.type)">
         <datatable-header-cell
@@ -73,15 +71,8 @@ export class DataTableHeader {
   @Input() set columns(val: any[]) {
     this._columns = val;
 
-    // lets convert this to a array so we can handle
-    // this better in the template
-    let colsByPinArr = [];
     const colsByPin = columnsByPin(val);
-    colsByPinArr.push({ type: 'left', columns: colsByPin['left'] });
-    colsByPinArr.push({ type: 'center', columns: colsByPin['center'] });
-    colsByPinArr.push({ type: 'right', columns: colsByPin['right'] });
-    this.columnsByPin = colsByPinArr;
-
+    this.columnsByPin = columnsByPinArr(val);
     this.columnGroupWidths = columnGroupWidths(colsByPin, val);
   }
 

@@ -1,31 +1,27 @@
-import {
-  Component, Input, Renderer,
-  ElementRef
-} from '@angular/core';
-import { StateService } from '../../services';
+import { Component, Input, Renderer, ElementRef } from '@angular/core';
 
 @Component({
   selector: 'datatable-row-wrapper',
   template: `
-        <ng-content></ng-content>
-        <div *ngIf="row.$$expanded === 1 && state.options.rowDetailTemplate"
-              [style.height]="state.options.detailRowHeight +  'px'" 
-              class="datatable-row-detail">
-          <template
-            [ngTemplateOutlet]="state.options.rowDetailTemplate"
-            [ngOutletContext]="{ row: row}">
-          </template>
-        </div>
-    `,
+    <ng-content></ng-content>
+    <div 
+      *ngIf="row.$$expanded === 1 && rowDetailTemplate"
+      [style.height]="detailRowHeight +  'px'" 
+      class="datatable-row-detail">
+      <template
+        [ngTemplateOutlet]="rowDetailTemplate"
+        [ngOutletContext]="{ row: row }">
+      </template>
+    </div>
+  `,
 })
 export class DataTableRowWrapper {
 
-  /**
-   * The row for which the detail needs to be shown.
-   */
+  @Input() rowDetailTemplate: any;
+  @Input() detailRowHeight: any;
   @Input() row: any;
 
-  constructor(public element: ElementRef, private state: StateService, renderer: Renderer) {
+  constructor(public element: ElementRef, renderer: Renderer) {
     renderer.setElementClass(this.element.nativeElement, 'datatable-row-wrapper', true);
   }
 }

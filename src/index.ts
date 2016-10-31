@@ -3,7 +3,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import {
-  DataTable,
+  DatatableComponent,
   DataTableColumn,
   DataTableHeader,
   DataTableBody,
@@ -14,7 +14,8 @@ import {
   DataTableRowWrapper,
   ProgressBar,
   DataTableBodyCell,
-  DatatableRowDetailTemplate
+  DatatableRowDetailTemplate,
+  ScrollerComponent
 } from './components';
 
 import {
@@ -22,8 +23,7 @@ import {
   LongPress,
   Resizeable,
   Orderable,
-  Draggable,
-  Scroller
+  Draggable
 } from './directives';
 
 export * from './types';
@@ -40,8 +40,8 @@ export * from './components';
     Resizeable,
     Orderable,
     LongPress,
-    Scroller,
-    DataTable,
+    ScrollerComponent,
+    DatatableComponent,
     DataTableColumn,
     DataTableHeader,
     DataTableHeaderCell,
@@ -55,7 +55,7 @@ export * from './components';
     DataTableBodyCell
   ],
   exports: [
-    DataTable,
+    DatatableComponent,
     DatatableRowDetailTemplate,
     DataTableColumn
   ]

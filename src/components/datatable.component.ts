@@ -30,6 +30,28 @@ import { scrollbarWidth } from '../utils';
         [sortDescendingIcon]="cssClasses.sortDescending"
         (onColumnChange)="onColumnChange.emit($event)">
       </datatable-header>
+      <datatable-body
+        [rows]="rows"
+        [scrollbarV]="scrollbarV"
+        [scrollbarH]="scrollbarH"
+        [loadingIndicator]="loadingIndicator"
+        [rowHeight]="rowHeight"
+        [rowCount]="rowCount"
+        [offset]="offset"
+        [limit]="limit"
+        [columns]="columns"
+        [pageSize]="pageSize"
+        [offsetX]="offsetX"
+        [offsetY]="offsetY"
+        [detailRowHeight]="detailRowHeight"
+        [selected]="selected"
+        [bodyWidth]="innerWidth"
+        [bodyHeight]="bodyHeight"
+        [selectionType]="selectionType"
+        [emptyMessage]="emptyMessage"
+        (onRowClick)="onRowClick.emit($event)"
+        (onRowSelect)="onRowSelect($event)">
+      </datatable-body>
       <datatable-footer
         *ngIf="footerHeight"
         [rowCount]="rowCount"
@@ -46,7 +68,7 @@ import { scrollbarWidth } from '../utils';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DataTable implements OnInit, AfterViewInit {
+export class DatatableComponent implements OnInit, AfterViewInit {
 
   // Rows
   @Input() set rows(val: any[]) {
@@ -99,15 +121,7 @@ export class DataTable implements OnInit, AfterViewInit {
   @Input() tableHeight: number = 300;
 
   // if external paging is turned on
-  @Input() 
-  set externalPaging(val: boolean) {
-    this._externalPaging = val; 
-    this.rowCount = this.calcRowCount(this.rows);
-  }
-
-  get externalPaging(): boolean {
-    return this._externalPaging;
-  }
+  @Input() externalPaging: boolean = false;
 
   // Page size
   @Input() limit: number = undefined;
@@ -213,7 +227,9 @@ export class DataTable implements OnInit, AfterViewInit {
     return this._rowDetailTemplateChild;
   }
   
-  private offsetX: number = 0;
+  offsetX: number = 0;
+  offsetY: number = 0;
+
   private element: HTMLElement;
   private scrollbarWidth: number = scrollbarWidth();
   private innerWidth: number;
@@ -224,13 +240,8 @@ export class DataTable implements OnInit, AfterViewInit {
   private _rows: any[];
   private _columnTemplates: QueryList<DataTableColumn>;
   private _rowDetailTemplateChild: DatatableRowDetailTemplate;
-  private _externalPaging: boolean;
 
-  constructor(
-    renderer: Renderer,
-    element: ElementRef,
-    differs: KeyValueDiffers) {
-
+  constructor(renderer: Renderer, element: ElementRef) {
     this.element = element.nativeElement;
     renderer.setElementClass(this.element, 'datatable', true);
   }
@@ -300,10 +311,10 @@ export class DataTable implements OnInit, AfterViewInit {
   }
 
   setPage(ev) {
-
+    console.log('tood');
   }
 
-  calcPageSize(val): number {
+  calcPageSize(val: any[]): number {
     // Keep the page size constant even if the row has been expanded.
     // This is because an expanded row is still considered to be a child of
     // the original row.  Hence calculation would use rowHeight only.
@@ -319,10 +330,10 @@ export class DataTable implements OnInit, AfterViewInit {
     return 0;
   }
 
-  calcRowCount(val): number {
+  calcRowCount(val: any[]): number {
     if(!this.externalPaging) {
-      if(val) return val.length;
-      return 0;
+      if(!val) return 0;
+      return val.length;
     }
 
     return this.count;

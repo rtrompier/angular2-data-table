@@ -2,9 +2,7 @@ import {
   Component, Input, PipeTransform, HostBinding
 } from '@angular/core';
 
-import { TableColumn } from '../../models';
-import { deepValueGetter } from '../../utils';
-import { StateService } from '../../services';
+import { deepValueGetter, camelCase } from '../../utils';
 import { SortDirection } from '../../types';
 
 @Component({
@@ -25,8 +23,10 @@ import { SortDirection } from '../../types';
 })
 export class DataTableBodyCell {
 
-  @Input() column: TableColumn;
+  @Input() column: any;
   @Input() row: any;
+  @Input() rowHeight: number;
+  @Input() sorts: any;
 
   @HostBinding('class')
   get cssClasses(): string {
@@ -47,26 +47,34 @@ export class DataTableBodyCell {
 
   @HostBinding('style.height')
   get height(): any {
-    const height = this.state.options.rowHeight;
+    const height = this.rowHeight;
     if(isNaN(height)) return height;
     return height + 'px';
   }
 
   get sortDir() {
-    let sort = this.state.options.sorts.find(s => {
-      return s.prop === this.column.prop;
-    });
+    if(this.sorts) {
+      let sort = this.sorts.find(s => {
+        return s.prop === this.column.prop;
+      });
 
-    if(sort) return sort.dir;
+      if(sort) return sort.dir;
+    }
   }
 
   get value(): any {
     if (!this.row) return '';
-    const prop: any = deepValueGetter(this.row, this.column.prop);
+    const prop = deepValueGetter(this.row, this.column.prop || this.prop);
     const userPipe: PipeTransform = this.column.pipe;
     return userPipe ? userPipe.transform(prop) : prop;
   }
 
-  constructor(private state: StateService) { }
+  private prop: string;
+
+  ngOnInit() {
+    if(!this.column.prop && this.column.name) {
+      this.prop = camelCase(this.column.name);
+    }
+  }
 
 }

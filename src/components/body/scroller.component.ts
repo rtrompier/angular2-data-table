@@ -1,21 +1,26 @@
 import {
-  Directive,
+  Component,
   Input,
   ElementRef,
   Output,
   EventEmitter,
   OnInit,
-  OnDestroy
+  OnDestroy,
+  ChangeDetectionStrategy
 } from '@angular/core';
 
-@Directive({
-  selector: '[scroller]',
+@Component({
+  selector: 'datatable-scroller',
+  template: `
+    <ng-content></ng-content>
+  `,
   host: {
     '[style.height]': 'scrollHeight + "px"',
     '[style.width]': 'scrollWidth + "px"'
-  }
+  },
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Scroller implements OnInit, OnDestroy {
+export class ScrollerComponent implements OnInit, OnDestroy {
 
   @Input() rowHeight: number;
   @Input() count: number;
@@ -23,13 +28,9 @@ export class Scroller implements OnInit, OnDestroy {
   @Input() scrollWidth: number;
   @Input() scrollbarV: boolean = false;
   @Input() scrollbarH: boolean = false;
+  @Input() scrollHeight: number;
 
   @Output() onScroll: EventEmitter<any> = new EventEmitter();
-  
-  /**
-   * The height of the scroll bar.
-   */
-  @Input() scrollHeight: number;
 
   private scrollYPos: number = 0;
   private scrollXPos: number = 0;
@@ -37,6 +38,7 @@ export class Scroller implements OnInit, OnDestroy {
   private prevScrollXPos: number = 0;
   private element: any;
   private parentElement: any;
+  
   constructor(element: ElementRef) {
     this.element = element.nativeElement;
     this.element.classList.add('datatable-scroll');
