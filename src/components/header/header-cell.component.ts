@@ -1,10 +1,8 @@
 import {
-  Component, Input, ElementRef, EventEmitter,
-  Output, Renderer, HostBinding
+  Component, Input, EventEmitter,
+  Output, HostBinding, ChangeDetectionStrategy
 } from '@angular/core';
 
-import { StateService } from '../../services';
-import { TableColumn } from '../../models';
 import { SortDirection } from '../../types';
 
 @Component({
@@ -13,48 +11,62 @@ import { SortDirection } from '../../types';
     <div>
       <span
         class="datatable-header-cell-label draggable"
-        *ngIf="!column.headerTemplate"
+        *ngIf="!headerTemplate"
         (click)="onSort()"
         [innerHTML]="name">
       </span>
       <template
-        *ngIf="column.headerTemplate"
-        [ngTemplateOutlet]="column.headerTemplate"
-        [ngOutletContext]="{ column: column, sort: sort }">
+        *ngIf="headerTemplate"
+        [ngTemplateOutlet]="headerTemplate"
+        [ngOutletContext]="{ 
+          columnName: columnName, 
+          sortDir: sortDir, 
+          columnProp: columnProp 
+        }">
       </template>
       <span
         class="sort-btn"
         [ngClass]="sortClasses()">
       </span>
     </div>
-  `
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DataTableHeaderCell {
 
-  @Input() column: TableColumn;
-  @Output() onColumnChange: EventEmitter<any> = new EventEmitter();
+  @Input() columnName: any;
+  @Input() columnProp: any;
+  @Input() sortAscendingIcon: any;
+  @Input() sortDescendingIcon: any;
+  @Input() sortDir: any;
+  @Input() headerTemplate: any;
 
-  @HostBinding('style.width.px')
-  get width() { return this.column.width; }
+  @HostBinding('style.height')
+  @Input() headerHeight: any;
 
   @HostBinding('style.minWidth.px')
-  get minWidth() { return this.column.minWidth; }
+  @Input() cellMinWidth: any;
 
   @HostBinding('style.maxWidth.px')
-  get maxWidth() { return this.column.maxWidth; }
+  @Input() cellMaxWidth: any;
 
-  @HostBinding('style.height.px')
-  get height() { return this.state.options.headerHeight; }
+  @HostBinding('style.width.px')
+  @Input() cellWidth: any;
+
+  @Input() isSortable: boolean;
+  @Input() isResizeable: boolean;
+
+  @Output() onColumnChange: EventEmitter<any> = new EventEmitter();
 
   @HostBinding('attr.title')
-  get colTitle() { return this.name; }
+  private get colTitle() { return this.name; }
 
   @HostBinding('class')
-  get cssClasses() {
+  get columnCssClasses() {
     let cls = 'datatable-header-cell';
 
-    if(this.column.sortable) cls += ' sortable';
-    if(this.column.resizeable) cls += ' resizeable';
+    if(this.isSortable) cls += ' sortable';
+    if(this.isResizeable) cls += ' resizeable';
 
     const sortDir = this.sortDir;
     if(sortDir) {
@@ -64,47 +76,30 @@ export class DataTableHeaderCell {
     return cls;
   }
 
-  sort: Function = this.onSort.bind(this);
-
-  get sortDir() {
-    let sort = this.state.options.sorts.find(s => {
-      return s.prop === this.column.prop;
-    });
-
-    if(sort) return sort.dir;
-  }
-
   get name() {
-    return this.column.name || this.column.prop;
-  }
-
-  constructor(
-    public element: ElementRef,
-    private state: StateService,
-    renderer: Renderer) {
+    return this.columnName || this.columnProp;
   }
 
   sortClasses(sort) {
     let result = {};
     const dir = this.sortDir;
-    const icons = this.state.options.cssClasses;
 
     if(dir === SortDirection.asc) {
-      result[`sort-asc ${icons.sortAscending}`] = true;
+      result[`sort-asc ${this.sortAscendingIcon}`] = true;
     } else if(dir === SortDirection.desc) {
-      result[`sort-desc ${icons.sortDescending}`] = true;
+      result[`sort-desc ${this.sortDescendingIcon}`] = true;
     }
 
     return result;
   }
 
   onSort() {
-    if(this.column.sortable) {
-      this.state.nextSort(this.column);
+    if(this.isSortable) {
+      // this.nextSort(this.column);
 
       this.onColumnChange.emit({
-        type: 'sort',
-        value: this.column
+        type: 'sort'
+        // value: this.column
       });
     }
   }
