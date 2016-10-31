@@ -68,14 +68,12 @@ import { ScrollerComponent } from './scroller.component';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DataTableBody {
+export class DataTableBodyComponent {
 
    @Input() set rows(val: any[]) {
     this._rows = val;
-    console.log('row', this.rowCount, val, this.rowCount);
     this.indexes = this.calcIndexes();
     this.updateRows();
-    console.log('row count', this.rowCount);
   }
 
   get rows(): any[] {
@@ -266,8 +264,6 @@ export class DataTableBody {
     }
 
     this.temp = temp;
-
-    console.log('temp', first, last, temp);
   }
 
   /**
@@ -389,12 +385,9 @@ export class DataTableBody {
       first = this.rowHeightsCache.getRowIndex(this.offsetY);
       last = this.rowHeightsCache.getRowIndex(this.bodyHeight + this.offsetY) + 1;
     } else {
-      console.log('pag', this.offset, this.pageSize, this.rowCount);
       first = Math.max(this.offset * this.pageSize, 0);
       last = Math.min((first + this.pageSize), this.rowCount);
-      console.log('id', first, last);
     }
-
 
     return { first, last };
   }

@@ -24,7 +24,7 @@ import {
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DataTableFooter {
+export class DataTableFooterComponent {
 
   @Input() footerHeight: number;
   @Input() rowCount: number;

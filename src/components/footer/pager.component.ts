@@ -53,7 +53,7 @@ import {
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DataTablePager {
+export class DataTablePagerComponent {
 
   @Input() size: number = 0;
   @Input() pagerLeftArrowIcon: string;
@@ -145,8 +145,6 @@ export class DataTablePager {
         text: num
       });
     }
-
-    console.log('pages', pages, this.count, this.size, this.totalPages)
 
     return pages;
   }

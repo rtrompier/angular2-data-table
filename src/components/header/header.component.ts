@@ -46,7 +46,7 @@ import { columnsByPin, columnGroupWidths, columnsByPinArr, translateXY } from '.
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DataTableHeader {
+export class DataTableHeaderComponent {
 
   @Input() sortAscendingIcon: any;
   @Input() sortDescendingIcon: any;

@@ -5,11 +5,10 @@ import {
   HostBinding, Renderer, ContentChild, TemplateRef, ChangeDetectionStrategy
 } from '@angular/core';
 
-import { forceFillColumnWidths, adjustColumnWidths } from '../utils';
+import { forceFillColumnWidths, adjustColumnWidths, camelCase, id } from '../utils';
 import { ColumnMode, SortType, SelectionType } from '../types';
-import { TableColumn } from '../models';
-import { DataTableColumn } from './datatable-column.directive';
-import { DatatableRowDetailTemplate } from './datatable-row-detail-template.directive';
+import { DataTableColumnDirective } from './datatable-column.directive';
+import { DatatableRowDetailDirective } from './datatable-row-detail.directive';
 import { scrollbarWidth } from '../utils';
 
 @Component({
@@ -81,11 +80,18 @@ export class DatatableComponent implements OnInit, AfterViewInit {
     return this._rows;
   }
 
+  // Columns
+  @Input() set columns(val: any[]) {
+    this.setColumnDefaults(val);
+    this._columns = val;
+  }
+
+  get columns(): any[] {
+    return this._columns;
+  }
+
   // Selected rows
   @Input() selected: any[];
-
-  // Columns
-  @Input() columns: any[] = [];
 
   // Enable vertical scrollbars
   @Input() scrollbarV: boolean = false;
@@ -202,28 +208,28 @@ export class DatatableComponent implements OnInit, AfterViewInit {
     return this.selectionType !== undefined;
   }
 
-  @ContentChildren(DataTableColumn) 
-  set columnTemplates(val: QueryList<DataTableColumn>) {
+  @ContentChildren(DataTableColumnDirective) 
+  set columnTemplates(val: QueryList<DataTableColumnDirective>) {
     this._columnTemplates = val;
 
     if(val) {
       for (let col of val.toArray()) {
-        this.columns.push(new TableColumn(col));
+        this.columns.push(col);
       }
     }
   }
 
-  get columnTemplates(): QueryList<DataTableColumn> {
+  get columnTemplates(): QueryList<DataTableColumnDirective> {
     return this._columnTemplates;
   }
 
-  @ContentChild(DatatableRowDetailTemplate) 
-  set rowDetailTemplateChild(val: DatatableRowDetailTemplate) {
+  @ContentChild(DatatableRowDetailDirective) 
+  set rowDetailTemplateChild(val: DatatableRowDetailDirective) {
     this._rowDetailTemplateChild = val;
     if(val) this.rowDetailTemplate = val.rowDetailTemplate;
   }
 
-  get rowDetailTemplateChild(): DatatableRowDetailTemplate {
+  get rowDetailTemplateChild(): DatatableRowDetailDirective {
     return this._rowDetailTemplateChild;
   }
   
@@ -238,8 +244,9 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   private rowCount: number;
 
   private _rows: any[];
-  private _columnTemplates: QueryList<DataTableColumn>;
-  private _rowDetailTemplateChild: DatatableRowDetailTemplate;
+  private _columns: any[];
+  private _columnTemplates: QueryList<DataTableColumnDirective>;
+  private _rowDetailTemplateChild: DatatableRowDetailDirective;
 
   constructor(renderer: Renderer, element: ElementRef) {
     this.element = element.nativeElement;
@@ -337,6 +344,39 @@ export class DatatableComponent implements OnInit, AfterViewInit {
     }
 
     return this.count;
+  }
+
+  setColumnDefaults(columns: any[]) {
+    if(!columns) return;
+    
+    for(let column of columns) {
+      column.$$id = id();
+      
+      // translate name => prop
+      if(!column.prop && column.name) {
+        column.prop = camelCase(column.name);
+      }
+    
+      if(!column.hasOwnProperty('resizeable')) {
+        column.resizeable = true;
+      }
+
+      if(!column.hasOwnProperty('sortable')) {
+        column.sortable = true;
+      }
+
+      if(!column.hasOwnProperty('draggable')) {
+        column.draggable = true;
+      }
+
+      if(!column.hasOwnProperty('canAutoResize')) {
+        column.canAutoResize = true;
+      }
+
+      if(!column.hasOwnProperty('width')) {
+        column.width = 150;
+      }
+    }
   }
 
 }

@@ -2,7 +2,7 @@ import {
   Component, Input, PipeTransform, HostBinding
 } from '@angular/core';
 
-import { deepValueGetter, camelCase } from '../../utils';
+import { deepValueGetter } from '../../utils';
 import { SortDirection } from '../../types';
 
 @Component({
@@ -21,7 +21,7 @@ import { SortDirection } from '../../types';
     </div>
   `
 })
-export class DataTableBodyCell {
+export class DataTableBodyCellComponent {
 
   @Input() column: any;
   @Input() row: any;
@@ -64,17 +64,8 @@ export class DataTableBodyCell {
 
   get value(): any {
     if (!this.row) return '';
-    const prop = deepValueGetter(this.row, this.column.prop || this.prop);
+    const prop = deepValueGetter(this.row, this.column.prop);
     const userPipe: PipeTransform = this.column.pipe;
     return userPipe ? userPipe.transform(prop) : prop;
   }
-
-  private prop: string;
-
-  ngOnInit() {
-    if(!this.column.prop && this.column.name) {
-      this.prop = camelCase(this.column.name);
-    }
-  }
-
 }

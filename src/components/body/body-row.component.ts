@@ -18,7 +18,7 @@ import { columnsByPin, columnGroupWidths, columnsByPinArr, translateXY } from '.
     </div>
   `
 })
-export class DataTableBodyRow {
+export class DataTableBodyRowComponent {
 
   @Input() set columns(val: any[]) {
     this._columns = val;

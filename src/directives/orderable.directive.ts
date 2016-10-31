@@ -6,15 +6,15 @@ import {
   QueryList
 } from '@angular/core';
 
-import { Draggable } from './draggable.directive';
+import { DraggableDirective } from './draggable.directive';
 
 @Directive({ selector: '[orderable]' })
-export class Orderable {
+export class OrderableDirective {
 
   @Output() onReorder: EventEmitter<any> = new EventEmitter();
 
-  @ContentChildren(Draggable)
-  private drags: QueryList<Draggable>;
+  @ContentChildren(DraggableDirective)
+  private drags: QueryList<DraggableDirective>;
 
   private positions: any;
 

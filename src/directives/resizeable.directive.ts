@@ -7,7 +7,7 @@ import { Observable, Subscription } from 'rxjs/Rx';
     '[class.resizeable]': 'resizeEnabled'
   }
 })
-export class Resizeable {
+export class ResizeableDirective {
 
   @Input() resizeEnabled: boolean = true;
   @Input() minWidth: number;

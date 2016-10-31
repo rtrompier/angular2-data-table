@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 
 @Directive({ selector: '[long-press]' })
-export class LongPress {
+export class LongPressDirective {
 
   @Input() duration: number = 500;
 

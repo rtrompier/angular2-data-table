@@ -32,7 +32,7 @@ import { SortDirection } from '../../types';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DataTableHeaderCell {
+export class DataTableHeaderCellComponent {
 
   @Input() columnName: any;
   @Input() columnProp: any;

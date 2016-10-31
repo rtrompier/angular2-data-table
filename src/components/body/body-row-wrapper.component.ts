@@ -15,7 +15,7 @@ import { Component, Input, Renderer, ElementRef } from '@angular/core';
     </div>
   `,
 })
-export class DataTableRowWrapper {
+export class DataTableRowWrapperComponent {
 
   @Input() rowDetailTemplate: any;
   @Input() detailRowHeight: any;

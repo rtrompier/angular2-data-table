@@ -20,7 +20,7 @@ import { VisibilityObserver } from '../utils';
  *
  */
 @Directive({ selector: '[visibility-observer]' })
-export class Visibility {
+export class VisibilityDirective {
 
   @HostBinding('class.visible') visible: boolean = false;
 

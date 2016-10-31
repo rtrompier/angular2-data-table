@@ -3,7 +3,7 @@ import {Directive, TemplateRef, QueryList, ContentChildren, Input} from '@angula
 @Directive({
   selector: 'datatable-column',
 })
-export class DataTableColumn {
+export class DataTableColumnDirective {
 
   @Input() name;
   @Input() prop;

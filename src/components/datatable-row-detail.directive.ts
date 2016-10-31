@@ -3,7 +3,7 @@ import { Directive, TemplateRef, ContentChild } from '@angular/core';
 @Directive({
   selector: 'datatable-row-detail-template'
 })
-export class DatatableRowDetailTemplate {
+export class DatatableRowDetailDirective {
 
   @ContentChild(TemplateRef) template: TemplateRef<any>;
 

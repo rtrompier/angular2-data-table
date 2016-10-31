@@ -10,7 +10,7 @@ import { Observable, Subscription } from 'rxjs/Rx';
  *
  */
 @Directive({ selector: '[draggable]' })
-export class Draggable {
+export class DraggableDirective {
 
   public element: HTMLElement;
 
