@@ -11,7 +11,7 @@ import { columnsByPin, columnGroupWidths, columnsByPinArr, translateXY } from '.
       [style.width]="columnGroupWidths.total + 'px'"
       class="datatable-header-inner"
       orderable
-      (onReorder)="columnReordered($event)">
+      (reorder)="columnReordered($event)">
       <div
         *ngFor="let colGroup of columnsByPin; trackBy: colGroup?.type"
         [class]="'datatable-row-' + colGroup.type"
@@ -20,10 +20,10 @@ import { columnsByPin, columnGroupWidths, columnsByPinArr, translateXY } from '.
           *ngFor="let column of colGroup.columns; trackBy: column?.$$id"
           resizeable
           [resizeEnabled]="column.resizeable"
-          (onResize)="columnResized($event, column)"
+          (resize)="columnResized($event, column)"
           long-press
-          (onLongPress)="drag = true"
-          (onLongPressEnd)="drag = false"
+          (longPress)="drag = true"
+          (longPressEnd)="drag = false"
           draggable
           [dragX]="column.draggable && drag"
           [dragY]="false"
@@ -39,7 +39,7 @@ import { columnsByPin, columnGroupWidths, columnsByPinArr, translateXY } from '.
           [headerTemplate]="column.headerTemplate"
           [isSortable]="column.sortable"
           [isResizeable]="column.resizeable"
-          (onColumnChange)="onColumnChange.emit($event)">
+          (columnChange)="columnChange.emit($event)">
         </datatable-header-cell>
       </div>
     </div>
@@ -80,7 +80,7 @@ export class DataTableHeaderComponent {
     return this._columns; 
   }
 
-  @Output() onColumnChange: EventEmitter<any> = new EventEmitter();
+  @Output() columnChange: EventEmitter<any> = new EventEmitter();
 
   private columnsByPin: any;
   private columnGroupWidths: any;
@@ -119,7 +119,7 @@ export class DataTableHeaderComponent {
 
     column.width = width;
 
-    this.onColumnChange.emit({
+    this.columnChange.emit({
       type: 'resize',
       value: column
     });
@@ -129,7 +129,7 @@ export class DataTableHeaderComponent {
     // this.columns.splice(prevIndex, 1);
     // this.columns.splice(newIndex, 0, model);
 
-    this.onColumnChange.emit({
+    this.columnChange.emit({
       type: 'reorder',
       value: model,
       prevIndex,

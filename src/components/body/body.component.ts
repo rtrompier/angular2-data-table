@@ -26,7 +26,7 @@ import { ScrollerComponent } from './scroller.component';
       </datatable-progress>
       <datatable-scroller
         *ngIf="rows.length"
-        (onScroll)="onBodyScroll($event)"
+        (scroll)="onBodyScroll($event)"
         [rowHeight]="rowHeight"
         [scrollbarV]="scrollbarV"
         [scrollbarH]="scrollbarH"
@@ -53,9 +53,9 @@ import { ScrollerComponent } from './scroller.component';
             [row]="row"
             [class.datatable-row-even]="row.$$index % 2 === 0"
             [class.datatable-row-odd]="row.$$index % 2 !== 0"
-            (click)="rowClicked($event, i, row)"
-            (dblclick)="rowClicked($event, i, row)"
-            (keydown)="rowKeydown($event, i, row)">
+            (click)="onRowClick($event, i, row)"
+            (dblclick)="onRowClick($event, i, row)"
+            (keydown)="onRowKeyDown($event, i, row)">
           </datatable-body-row>
         </datatable-row-wrapper>
       </datatable-scroller>
@@ -146,8 +146,8 @@ export class DataTableBodyComponent {
     return this._bodyHeight;
   }
 
-  @Output() onRowClick: EventEmitter<any> = new EventEmitter();
-  @Output() onRowSelect: EventEmitter<any> = new EventEmitter();
+  @Output() rowClick: EventEmitter<any> = new EventEmitter();
+  @Output() rowSelect: EventEmitter<any> = new EventEmitter();
 
   @ViewChild(ScrollerComponent) scroller: ScrollerComponent;
 
@@ -319,16 +319,16 @@ export class DataTableBodyComponent {
     setTimeout(() => this.loadingIndicator = false, 500);
   }
 
-  rowClicked(event, index, row): void {
+  onRowClick(event, index, row): void {
     let clickType = event.type === 'dblclick' ? 
       ClickType.double : 
       ClickType.single;
 
-    this.onRowClick.emit({ type: clickType, event, row });
+    this.rowClick.emit({ type: clickType, event, row });
     this.selectRow(event, index, row);
   }
 
-  rowKeydown(event, index, row) {
+  onRowKeyDown(event, index, row) {
     if (event.keyCode === Keys.return && this.selectEnabled) {
       this.selectRow(event, index, row);
     } else if (event.keyCode === Keys.up || event.keyCode === Keys.down) {
@@ -366,7 +366,7 @@ export class DataTableBodyComponent {
     }
 
     this.prevIndex = index;
-    this.onRowSelect.emit(selections);
+    this.rowSelect.emit(selections);
     */
   }
 

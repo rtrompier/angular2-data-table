@@ -56,7 +56,7 @@ export class DataTableHeaderCellComponent {
   @Input() isSortable: boolean;
   @Input() isResizeable: boolean;
 
-  @Output() onColumnChange: EventEmitter<any> = new EventEmitter();
+  @Output() columnChange: EventEmitter<any> = new EventEmitter();
 
   @HostBinding('attr.title')
   private get colTitle() { return this.name; }
@@ -97,7 +97,7 @@ export class DataTableHeaderCellComponent {
     if(this.isSortable) {
       // this.nextSort(this.column);
 
-      this.onColumnChange.emit({
+      this.columnChange.emit({
         type: 'sort'
         // value: this.column
       });

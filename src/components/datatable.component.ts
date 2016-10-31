@@ -16,7 +16,7 @@ import { scrollbarWidth } from '../utils';
   template: `
     <div
       visibility-observer
-      (onVisibilityChange)="adjustSizes()">
+      (visible)="adjustSizes()">
       <datatable-header
         *ngIf="headerHeight"
         [sorts]="sorts"
@@ -27,7 +27,7 @@ import { scrollbarWidth } from '../utils';
         [headerHeight]="headerHeight"
         [sortAscendingIcon]="cssClasses.sortAscending"
         [sortDescendingIcon]="cssClasses.sortDescending"
-        (onColumnChange)="onColumnChange.emit($event)">
+        (columnChange)="columnChange.emit($event)">
       </datatable-header>
       <datatable-body
         [rows]="rows"
@@ -48,8 +48,8 @@ import { scrollbarWidth } from '../utils';
         [bodyHeight]="bodyHeight"
         [selectionType]="selectionType"
         [emptyMessage]="emptyMessage"
-        (onRowClick)="onRowClick.emit($event)"
-        (onRowSelect)="onRowSelect($event)">
+        (rowClick)="rowClick.emit($event)"
+        (rowSelect)="onRowSelect($event)">
       </datatable-body>
       <datatable-footer
         *ngIf="footerHeight"
@@ -61,7 +61,7 @@ import { scrollbarWidth } from '../utils';
         [pagerRightArrowIcon]="cssClasses.pagerRightArrow"
         [pagerPreviousIcon]="cssClasses.pagerPrevious"
         [pagerNextIcon]="cssClasses.pagerNext"
-        (onPageChange)="setPage($event)">
+        (pageChange)="setPage($event)">
       </datatable-footer>
     </div>
   `,
@@ -171,11 +171,11 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   // (`fn(x) === fn(y)` instead of `x === y`)
   @Input() rowIdentity = ((x) => x);
 
-  @Output() onPageChange: EventEmitter<any> = new EventEmitter();
-  @Output() onRowsUpdate: EventEmitter<any> = new EventEmitter();
-  @Output() onRowClick: EventEmitter<any> = new EventEmitter();
-  @Output() onSelectionChange: EventEmitter<any> = new EventEmitter();
-  @Output() onColumnChange: EventEmitter<any> = new EventEmitter();
+  @Output() pageChange: EventEmitter<any> = new EventEmitter();
+  @Output() rowUpdate: EventEmitter<any> = new EventEmitter();
+  @Output() rowClick: EventEmitter<any> = new EventEmitter();
+  @Output() selection: EventEmitter<any> = new EventEmitter();
+  @Output() columnChange: EventEmitter<any> = new EventEmitter();
 
   @HostBinding('class.fixed-header')
   get isFixedHeader() {
@@ -319,6 +319,7 @@ export class DatatableComponent implements OnInit, AfterViewInit {
 
   setPage(ev) {
     console.log('tood');
+    this.pageChange.emit({  });
   }
 
   calcPageSize(val: any[]): number {

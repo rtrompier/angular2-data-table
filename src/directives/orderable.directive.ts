@@ -11,7 +11,7 @@ import { DraggableDirective } from './draggable.directive';
 @Directive({ selector: '[orderable]' })
 export class OrderableDirective {
 
-  @Output() onReorder: EventEmitter<any> = new EventEmitter();
+  @Output() reorder: EventEmitter<any> = new EventEmitter();
 
   @ContentChildren(DraggableDirective)
   private drags: QueryList<DraggableDirective>;
@@ -20,8 +20,8 @@ export class OrderableDirective {
 
   ngAfterContentInit() {
     this.drags.forEach(d =>
-      d.onDragStart.subscribe(this.onDragStart.bind(this)) &&
-      d.onDragEnd.subscribe(this.onDragEnd.bind(this)));
+      d.dragStart.subscribe(this.onDragStart.bind(this)) &&
+      d.dragEnd.subscribe(this.onDragEnd.bind(this)));
   }
 
   onDragStart() {
@@ -49,7 +49,7 @@ export class OrderableDirective {
       let movedRight = newPos > pos.left && prevPos.left < pos.left;
 
       if(movedLeft || movedRight) {
-        this.onReorder.emit({
+        this.reorder.emit({
           prevIndex: prevPos.index,
           newIndex: i,
           model

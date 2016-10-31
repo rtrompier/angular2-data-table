@@ -30,7 +30,7 @@ export class ScrollerComponent implements OnInit, OnDestroy {
   @Input() scrollbarH: boolean = false;
   @Input() scrollHeight: number;
 
-  @Output() onScroll: EventEmitter<any> = new EventEmitter();
+  @Output() scroll: EventEmitter<any> = new EventEmitter();
 
   private scrollYPos: number = 0;
   private scrollXPos: number = 0;
@@ -80,7 +80,7 @@ export class ScrollerComponent implements OnInit, OnDestroy {
       direction = 'up';
     }
 
-    this.onScroll.emit({
+    this.scroll.emit({
       direction,
       scrollYPos: this.scrollYPos,
       scrollXPos: this.scrollXPos

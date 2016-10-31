@@ -12,7 +12,8 @@ export class ResizeableDirective {
   @Input() resizeEnabled: boolean = true;
   @Input() minWidth: number;
   @Input() maxWidth: number;
-  @Output() onResize: EventEmitter<any> = new EventEmitter();
+
+  @Output() resize: EventEmitter<any> = new EventEmitter();
 
   private element: HTMLElement;
   private subscription: Subscription;
@@ -40,7 +41,7 @@ export class ResizeableDirective {
 
     if (this.subscription && !this.subscription.closed) {
       this.subscription.unsubscribe();
-      this.onResize.emit(this.element.clientWidth);
+      this.resize.emit(this.element.clientWidth);
     }
   }
 
