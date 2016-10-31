@@ -1,9 +1,6 @@
 import {
-  Directive,
-  Output,
-  EventEmitter,
-  ContentChildren,
-  QueryList
+  Directive, Output, EventEmitter, ContentChildren,
+  QueryList, KeyValueDiffers
 } from '@angular/core';
 
 import { DraggableDirective } from './draggable.directive';
@@ -13,24 +10,55 @@ export class OrderableDirective {
 
   @Output() reorder: EventEmitter<any> = new EventEmitter();
 
-  @ContentChildren(DraggableDirective)
-  private drags: QueryList<DraggableDirective>;
+  @ContentChildren(DraggableDirective, { descendants: true })
+  private draggables: QueryList<DraggableDirective>;
 
   private positions: any;
+  private differ: any;
+
+  constructor(differs: KeyValueDiffers) {
+    this.differ = differs.find({}).create(null);
+  }
 
   ngAfterContentInit() {
-    this.drags.forEach(d =>
-      d.dragStart.subscribe(this.onDragStart.bind(this)) &&
-      d.dragEnd.subscribe(this.onDragEnd.bind(this)));
+    this.updateSubscriptions();
+    this.draggables.changes.subscribe(
+        this.updateSubscriptions.bind(this));
+  }
+
+  ngOnDestroy() {
+    this.draggables.forEach(d => {
+      d.dragStart.unsubscribe();
+      d.dragEnd.unsubscribe();
+    });
+  }
+  
+  updateSubscriptions() {
+    const diffs = this.differ.diff(this.draggables.toArray());
+
+    if(diffs) {
+      let sub = ({ currentValue }) => {
+        currentValue.dragStart.subscribe(this.onDragStart.bind(this));
+        currentValue.dragEnd.subscribe(this.onDragEnd.bind(this));
+      };
+
+      diffs.forEachAddedItem(sub.bind(this));
+      diffs.forEachChangedItem(sub.bind(this));
+
+      diffs.forEachRemovedItem(({ currentValue }) => {
+        currentValue.dragStart.unsubscribe();
+        currentValue.dragEnd.unsubscribe();
+      });
+    }
   }
 
   onDragStart() {
     this.positions = {};
 
     let i = 0;
-    for(let dragger of this.drags.toArray()) {
+    for(let dragger of this.draggables.toArray()) {
       let elm = dragger.element;
-      this.positions[dragger.model.prop] =  {
+      this.positions[dragger.dragModel.prop] =  {
         left: parseInt(elm.offsetLeft.toString(), 0),
         index: i++
       };

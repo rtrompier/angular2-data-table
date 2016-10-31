@@ -3,7 +3,8 @@ import {
   Output, HostBinding, ChangeDetectionStrategy
 } from '@angular/core';
 
-import { SortDirection } from '../../types';
+import { SortDirection, SortType } from '../../types';
+import { nextSortDir } from '../../utils';
 
 @Component({
   selector: 'datatable-header-cell',
@@ -11,22 +12,21 @@ import { SortDirection } from '../../types';
     <div>
       <span
         class="datatable-header-cell-label draggable"
-        *ngIf="!headerTemplate"
+        *ngIf="!column.headerTemplate"
         (click)="onSort()"
         [innerHTML]="name">
       </span>
       <template
-        *ngIf="headerTemplate"
-        [ngTemplateOutlet]="headerTemplate"
+        *ngIf="column.headerTemplate"
+        [ngTemplateOutlet]="column.headerTemplate"
         [ngOutletContext]="{ 
-          columnName: columnName, 
-          sortDir: sortDir, 
-          columnProp: columnProp 
+          column: column, 
+          sortDir: sortDir
         }">
       </template>
       <span
         class="sort-btn"
-        [ngClass]="sortClasses()">
+        [ngClass]="sortClasses(sortDir)">
       </span>
     </div>
   `,
@@ -34,39 +34,31 @@ import { SortDirection } from '../../types';
 })
 export class DataTableHeaderCellComponent {
 
-  @Input() columnName: any;
-  @Input() columnProp: any;
-  @Input() sortAscendingIcon: any;
-  @Input() sortDescendingIcon: any;
-  @Input() sortDir: any;
-  @Input() headerTemplate: any;
+  @Input() sortType: SortType;
+  @Input() column: any;
+  @Input() sortAscendingIcon: string;
+  @Input() sortDescendingIcon: string;
 
-  @HostBinding('style.height')
-  @Input() headerHeight: any;
+  @HostBinding('style.height.px')
+  @Input() headerHeight: number;
 
-  @HostBinding('style.minWidth.px')
-  @Input() cellMinWidth: any;
+  @Input() set sorts(val: any[]) {
+    this._sorts = val;
+    this.sortDir = this.calcSortDir(val);
+  }
 
-  @HostBinding('style.maxWidth.px')
-  @Input() cellMaxWidth: any;
+  get sorts(): any[] {
+    return this._sorts;
+  }
 
-  @HostBinding('style.width.px')
-  @Input() cellWidth: any;
-
-  @Input() isSortable: boolean;
-  @Input() isResizeable: boolean;
-
-  @Output() columnChange: EventEmitter<any> = new EventEmitter();
-
-  @HostBinding('attr.title')
-  private get colTitle() { return this.name; }
+  @Output() sort: EventEmitter<any> = new EventEmitter();
 
   @HostBinding('class')
-  get columnCssClasses() {
+  get columnCssClasses(): any {
     let cls = 'datatable-header-cell';
 
-    if(this.isSortable) cls += ' sortable';
-    if(this.isResizeable) cls += ' resizeable';
+    if(this.column.sortable) cls += ' sortable';
+    if(this.column.resizeable) cls += ' resizeable';
 
     const sortDir = this.sortDir;
     if(sortDir) {
@@ -76,13 +68,31 @@ export class DataTableHeaderCellComponent {
     return cls;
   }
 
-  get name() {
-    return this.columnName || this.columnProp;
+  @HostBinding('attr.title')
+  private get name(): string {
+    return this.column.name || this.column.prop;
   }
 
-  sortClasses(sort) {
+  @HostBinding('style.minWidth.px')
+  private get minWidth(): number {
+    return this.column.minWidth;
+  }
+
+  @HostBinding('style.maxWidth.px')
+  private get maxWidth(): number {
+    return this.column.maxWidth;
+  }
+
+  @HostBinding('style.width.px')
+  private get width(): number {
+    return this.column.width;
+  }
+
+  private sortDir: SortDirection;
+  private _sorts: any[];
+
+  sortClasses(dir): any {
     let result = {};
-    const dir = this.sortDir;
 
     if(dir === SortDirection.asc) {
       result[`sort-asc ${this.sortAscendingIcon}`] = true;
@@ -93,15 +103,26 @@ export class DataTableHeaderCellComponent {
     return result;
   }
 
-  onSort() {
-    if(this.isSortable) {
-      // this.nextSort(this.column);
-
-      this.columnChange.emit({
-        type: 'sort'
-        // value: this.column
+  calcSortDir(sorts) {
+    if(sorts && this.column) {
+      const sort = sorts.find(s => {
+        return s.prop === this.column.prop;
       });
+
+      if(sort) return sort.dir;
     }
+  }
+
+  onSort(): void {
+    if(!this.column.sortable) return;
+
+    const newValue = nextSortDir(this.sortType, this.sortDir);
+    this.sort.emit({
+      type: 'sort',
+      model: this.column,
+      prevValue: this.sortDir,
+      newValue
+    });
   }
 
 }

@@ -12,12 +12,7 @@ import { Observable, Subscription } from 'rxjs/Rx';
 @Directive({ selector: '[draggable]' })
 export class DraggableDirective {
 
-  public element: HTMLElement;
-
-  // this kinda a hack to get
-  // the model in the orderable
-  @Input() model: any;
-
+  @Input() dragModel: any;
   @Input() dragX: boolean = true;
   @Input() dragY: boolean = true;
 
@@ -25,6 +20,7 @@ export class DraggableDirective {
   @Output() dragging: EventEmitter<any> = new EventEmitter();
   @Output() dragEnd: EventEmitter<any> = new EventEmitter();
 
+  element: HTMLElement;
   private isDragging: boolean = false;
   private subscription: Subscription;
 
@@ -48,7 +44,7 @@ export class DraggableDirective {
       this.dragEnd.emit({
         event,
         element: this.element,
-        model: this.model
+        model: this.dragModel
       });
     }
   }
@@ -66,7 +62,7 @@ export class DraggableDirective {
       this.dragStart.emit({
         event,
         element: this.element,
-        model: this.model
+        model: this.dragModel
       });
     }
   }
@@ -86,7 +82,7 @@ export class DraggableDirective {
       this.dragging.emit({
         event,
         element: this.element,
-        model: this.model
+        model: this.dragModel
       });
     }
   }

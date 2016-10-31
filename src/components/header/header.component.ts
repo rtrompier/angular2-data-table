@@ -1,17 +1,18 @@
 import {
-  Component, Output, ElementRef, Renderer,
-  EventEmitter, Input, HostBinding, ChangeDetectionStrategy
+  Component, Output, ElementRef, Renderer, EventEmitter, 
+  Input, HostBinding, ChangeDetectionStrategy
 } from '@angular/core';
+import { SortType } from '../../types';
 import { columnsByPin, columnGroupWidths, columnsByPinArr, translateXY } from '../../utils';
 
 @Component({
   selector: 'datatable-header',
   template: `
     <div
-      [style.width]="columnGroupWidths.total + 'px'"
-      class="datatable-header-inner"
       orderable
-      (reorder)="columnReordered($event)">
+      (reorder)="onColumnReordered($event)"
+      [style.width]="columnGroupWidths.total + 'px'"
+      class="datatable-header-inner">
       <div
         *ngFor="let colGroup of columnsByPin; trackBy: colGroup?.type"
         [class]="'datatable-row-' + colGroup.type"
@@ -20,26 +21,21 @@ import { columnsByPin, columnGroupWidths, columnsByPinArr, translateXY } from '.
           *ngFor="let column of colGroup.columns; trackBy: column?.$$id"
           resizeable
           [resizeEnabled]="column.resizeable"
-          (resize)="columnResized($event, column)"
+          (resize)="onColumnResized($event, column)"
           long-press
           (longPress)="drag = true"
           (longPressEnd)="drag = false"
           draggable
           [dragX]="column.draggable && drag"
           [dragY]="false"
+          [dragModel]="column"
           [headerHeight]="headerHeight"
-          [columnName]="column.name"
-          [columnProp]="column.prop"
+          [column]="column"
+          [sortType]="sortType"
+          [sorts]="sorts"
           [sortAscendingIcon]="sortAscendingIcon"
           [sortDescendingIcon]="sortDescendingIcon"
-          [sortDir]="getSortDirection(column)"
-          [cellMinWidth]="column.minWidth"
-          [cellMaxWidth]="column.maxWidth"
-          [cellWidth]="column.width"
-          [headerTemplate]="column.headerTemplate"
-          [isSortable]="column.sortable"
-          [isResizeable]="column.resizeable"
-          (columnChange)="columnChange.emit($event)">
+          (sort)="onSort($event)">
         </datatable-header-cell>
       </div>
     </div>
@@ -53,7 +49,8 @@ export class DataTableHeaderComponent {
   @Input() scrollbarH: boolean;
   @Input() innerWidth: number;
   @Input() offsetX: number;
-  @Input() sorts: any;
+  @Input() sorts: any[];
+  @Input() sortType: SortType;
 
   @HostBinding('style.height')
   @Input() set headerHeight(val: any) {
@@ -100,40 +97,36 @@ export class DataTableHeaderComponent {
     renderer.setElementClass(element.nativeElement, 'datatable-header', true);
   }
 
-  getSortDirection(column) {
-    if(this.sorts) {
-      const sort = this.sorts.find(s => {
-        return s.prop === column.prop;
-      });
-
-      if(sort) return sort.dir;
-    }
-  }
-
-  columnResized(width, column) {
+  onColumnResized(width, column) {
     if (width <= column.minWidth) {
       width = column.minWidth;
     } else if(width >= column.maxWidth) {
       width = column.maxWidth;
     }
-
-    column.width = width;
-
+    
     this.columnChange.emit({
       type: 'resize',
-      value: column
+      model: column,
+      prevValue: column.width,
+      newValue: width
     });
   }
 
-  columnReordered({ prevIndex, newIndex, model }) {
-    // this.columns.splice(prevIndex, 1);
-    // this.columns.splice(newIndex, 0, model);
-
+  onColumnReordered({ prevIndex, newIndex, model }) {
     this.columnChange.emit({
       type: 'reorder',
-      value: model,
-      prevIndex,
-      newIndex
+      model,
+      prevValue: prevIndex,
+      newValue: newIndex
+    });
+  }
+
+  onSort({ model, prevValue, newValue }) {
+    this.columnChange.emit({
+      type: 'sort',
+      model,
+      prevValue,
+      newValue
     });
   }
 

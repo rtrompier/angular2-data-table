@@ -5,7 +5,7 @@ import {
   HostBinding, Renderer, ContentChild, TemplateRef, ChangeDetectionStrategy
 } from '@angular/core';
 
-import { forceFillColumnWidths, adjustColumnWidths, camelCase, id } from '../utils';
+import { forceFillColumnWidths, adjustColumnWidths, camelCase, id, sortRows } from '../utils';
 import { ColumnMode, SortType, SelectionType } from '../types';
 import { DataTableColumnDirective } from './datatable-column.directive';
 import { DatatableRowDetailDirective } from './datatable-row-detail.directive';
@@ -20,6 +20,7 @@ import { scrollbarWidth } from '../utils';
       <datatable-header
         *ngIf="headerHeight"
         [sorts]="sorts"
+        [sortType]="sortType"
         [scrollbarH]="scrollbarH"
         [innerWidth]="innerWidth"
         [offsetX]="offsetX"
@@ -27,7 +28,7 @@ import { scrollbarWidth } from '../utils';
         [headerHeight]="headerHeight"
         [sortAscendingIcon]="cssClasses.sortAscending"
         [sortDescendingIcon]="cssClasses.sortDescending"
-        (columnChange)="columnChange.emit($event)">
+        (columnChange)="onColumnChange($event)">
       </datatable-header>
       <datatable-body
         [rows]="rows"
@@ -176,6 +177,7 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   @Output() rowClick: EventEmitter<any> = new EventEmitter();
   @Output() selection: EventEmitter<any> = new EventEmitter();
   @Output() columnChange: EventEmitter<any> = new EventEmitter();
+  @Output() sort: EventEmitter<any> = new EventEmitter();
 
   @HostBinding('class.fixed-header')
   get isFixedHeader() {
@@ -302,8 +304,8 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   }
 
   @HostListener('window:resize')
-  adjustColumns(forceIdx?: number): void {
-    if (!this.columns) return;
+  adjustColumns(columns: any[] = this.columns, forceIdx?: number): any[] {
+    if (!columns) return;
 
     let width = this.innerWidth;
     if (this.scrollbarV) {
@@ -311,10 +313,12 @@ export class DatatableComponent implements OnInit, AfterViewInit {
     }
 
     if (this.columnMode === ColumnMode.force) {
-      forceFillColumnWidths(this.columns, width, forceIdx);
+      forceFillColumnWidths(columns, width, forceIdx);
     } else if (this.columnMode === ColumnMode.flex) {
-      adjustColumnWidths(this.columns, width);
+      adjustColumnWidths(columns, width);
     }
+
+    return columns;
   }
 
   setPage(ev) {
@@ -378,6 +382,70 @@ export class DatatableComponent implements OnInit, AfterViewInit {
         column.width = 150;
       }
     }
+  }
+
+  onColumnChange(changes) {
+    const changeName = 
+      changes.type.substring(0, 1).toUpperCase() + 
+      changes.type.substring(1);
+    const type = `onColumn${changeName}`;
+
+    // type fn inferrence
+    if(this[type]) this[type](changes);
+
+    this.columnChange.emit(changes);
+  }
+
+  onColumnResize({ model, newValue }) {
+    let cols = this.columns.map(c => {
+      c = Object.assign({}, c);
+      if(c.$$id === model.$$id) c.width = newValue;
+      return c;
+    });
+
+    this.adjustColumns(cols, newValue);
+    this.columns = cols;
+  }
+
+  onColumnReorder({ model, newValue, prevValue }) {
+    let cols = this.columns.map(c => {
+      return Object.assign({}, c);
+    });
+
+    cols.splice(prevValue, 1);
+    cols.splice(newValue, 0, model);
+    this.columns = cols;
+  }
+
+  onColumnSort({ model, newValue, prevValue }) {
+    let idx = 0;
+    
+    let sorts = this.sorts.map((s, i) => { 
+      s = Object.assign({}, s); 
+      if(s.prop === model.prop) idx = i;
+      return s;
+    });
+
+    if (newValue === undefined) {
+      sorts.splice(idx, 1);
+    } else if (prevValue) {
+      sorts[idx].dir = newValue;
+    } else {
+      if (this.sortType === SortType.single) {
+        sorts.splice(0, this.sorts.length);
+      }
+
+      sorts.push({ dir: newValue, prop: model.prop });
+    }
+
+    if (!model.comparator) {
+      this.rows = sortRows(this.rows, this.sorts);
+    } else {
+      model.comparator(this.rows, this.sorts);
+    }
+
+    this.sorts = sorts;
+    this.sort.emit({ model, prevValue });
   }
 
 }
