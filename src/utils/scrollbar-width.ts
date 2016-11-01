@@ -23,5 +23,4 @@ export function getScrollBarWidth() {
   return widthNoScroll - widthWithScroll;
 };
 
-
 export const scrollbarWidth = getScrollBarWidth();
