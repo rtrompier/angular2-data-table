@@ -97,9 +97,10 @@
 	      -o-transition: width 0.3s ease;
 	      transition: width 0.3s ease;
 
-        &.active {
-          background: #0829e0
-        }
+        // cell active class
+        // &.active {
+        //  background: #0829e0
+        // }
 	    }
 
 	    &:hover,
