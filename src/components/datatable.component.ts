@@ -369,10 +369,10 @@ export class DatatableComponent implements OnInit, AfterViewInit {
     this.columnChange.emit(changes);
   }
 
-  onColumnResize({ model, newValue }) {
+  onColumnResize({ column, newValue }) {
     let cols = this.columns.map(c => {
       c = Object.assign({}, c);
-      if(c.$$id === model.$$id) c.width = newValue;
+      if(c.$$id === column.$$id) c.width = newValue;
       return c;
     });
 
@@ -380,46 +380,28 @@ export class DatatableComponent implements OnInit, AfterViewInit {
     this.columns = cols;
   }
 
-  onColumnReorder({ model, newValue, prevValue }) {
+  onColumnReorder({ column, newValue, prevValue }) {
     let cols = this.columns.map(c => {
       return Object.assign({}, c);
     });
 
     cols.splice(prevValue, 1);
-    cols.splice(newValue, 0, model);
+    cols.splice(newValue, 0, column);
     this.columns = cols;
   }
 
-  onColumnSort({ model, newValue, prevValue }) {
-    let idx = 0;
-    
-    let sorts = this.sorts.map((s, i) => { 
-      s = Object.assign({}, s); 
-      if(s.prop === model.prop) idx = i;
-      return s;
-    });
+  onColumnSort(event) {
+    const { column, sorts } = event;
 
-    if (newValue === undefined) {
-      sorts.splice(idx, 1);
-    } else if (prevValue) {
-      sorts[idx].dir = newValue;
-    } else {
-      if (this.sortType === SortType.single) {
-        sorts.splice(0, this.sorts.length);
-      }
-
-      sorts.push({ dir: newValue, prop: model.prop });
-    }
-
-    if (!model.comparator) {
+    if (!column.comparator) {
       this.rows = sortRows(this.rows, this.sorts);
     } else {
-      model.comparator(this.rows, this.sorts);
+      column.comparator(this.rows, this.sorts);
     }
 
     this.sorts = sorts;
     this.bodyComponent.updateOffsetY(0);
-    this.sort.emit({ model, prevValue });
+    this.sort.emit(event);
   }
 
 }

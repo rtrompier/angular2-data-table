@@ -119,7 +119,7 @@ export class DataTableHeaderCellComponent {
     const newValue = nextSortDir(this.sortType, this.sortDir);
     this.sort.emit({
       type: 'sort',
-      model: this.column,
+      column: this.column,
       prevValue: this.sortDir,
       newValue
     });

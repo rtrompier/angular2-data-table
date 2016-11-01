@@ -335,10 +335,10 @@ export class DataTableBodyComponent {
     // Capture the row index of the first row that is visible on the viewport.
     // If the scroll bar is just below the row which is highlighted then make that as the
     // first index.
-    let viewPortFirstRowIndex =  this.indexes.first;
+    let viewPortFirstRowIndex = this.indexes.first;
 
     if (this.scrollbarV) {
-      let offsetScroll = this.rowHeightsCache.query(viewPortFirstRowIndex - 1);
+      const offsetScroll = this.rowHeightsCache.query(viewPortFirstRowIndex - 1);
       return offsetScroll <= this.offsetY ? viewPortFirstRowIndex - 1 : viewPortFirstRowIndex;
     }
 
@@ -355,7 +355,7 @@ export class DataTableBodyComponent {
    */
   toggleRowExpansion(row: any): void {
     // Capture the row index of the first row that is visible on the viewport.
-    let viewPortFirstRowIndex =  this.getAdjustedViewPortIndex();
+    let viewPortFirstRowIndex = this.getAdjustedViewPortIndex();
 
     // If the detailRowHeight is auto --> only in case of non-virtualized scroll
     if(this.scrollbarV) {
@@ -382,9 +382,9 @@ export class DataTableBodyComponent {
     // Capture the row index of the first row that is visible on the viewport.
     let viewPortFirstRowIndex = this.getAdjustedViewPortIndex();
 
-    this.rows.forEach((row: any) => {
+    for(let row of this.rows) {
       row.$$expanded = rowExpanded;
-    });
+    }
 
     if(this.scrollbarV) {
       // Refresh the full row heights cache since every row was affected.

@@ -106,28 +106,54 @@ export class DataTableHeaderComponent {
     
     this.columnChange.emit({
       type: 'resize',
-      model: column,
+      column,
       prevValue: column.width,
       newValue: width
     });
   }
 
-  onColumnReordered({ prevIndex, newIndex, model }) {
+  onColumnReordered({ prevIndex, newIndex, column }) {
     this.columnChange.emit({
       type: 'reorder',
-      model,
+      column,
       prevValue: prevIndex,
       newValue: newIndex
     });
   }
 
-  onSort({ model, prevValue, newValue }) {
+  onSort({ column, prevValue, newValue }) {
+    const sorts = this.calcNewSorts(column, prevValue, newValue);
     this.columnChange.emit({
       type: 'sort',
-      model,
+      sorts,
+      column,
       prevValue,
       newValue
     });
+  }
+
+  calcNewSorts(column: any, prevValue: number, newValue: number) {
+    let idx = 0;
+    
+    let sorts = this.sorts.map((s, i) => { 
+      s = Object.assign({}, s); 
+      if(s.prop === column.prop) idx = i;
+      return s;
+    });
+
+    if (newValue === undefined) {
+      sorts.splice(idx, 1);
+    } else if (prevValue) {
+      sorts[idx].dir = newValue;
+    } else {
+      if (this.sortType === SortType.single) {
+        sorts.splice(0, this.sorts.length);
+      }
+
+      sorts.push({ dir: newValue, prop: column.prop });
+    }
+
+    return sorts;
   }
 
   stylesByGroup(group) {
