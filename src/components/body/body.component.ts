@@ -37,13 +37,13 @@ import { ScrollerComponent } from './scroller.component';
         <datatable-row-wrapper 
           *ngFor="let row of temp; let i = index; trackBy: row?.$$index"
           [ngStyle]="getRowsStyles(row)"
-          [style.height]="getRowHeight(row) + 'px'"
+          [style.height.px]="getRowHeight(row)"
           [rowDetailTemplate]="rowDetailTemplate"
           [detailRowHeight]="detailRowHeight"
           [row]="row">
           <datatable-body-row
-            [attr.tabindex]="i"
-            [style.height]="rowHeight +  'px'"
+            [style.height.px]="rowHeight"
+            [rowIndex]="i"
             [isSelected]="getRowSelected(row)"
             [innerWidth]="innerWidth"
             [scrollbarWidth]="scrollbarWidth"
@@ -53,9 +53,7 @@ import { ScrollerComponent } from './scroller.component';
             [row]="row"
             [class.datatable-row-even]="row.$$index % 2 === 0"
             [class.datatable-row-odd]="row.$$index % 2 !== 0"
-            (click)="onRowClick($event, i, row)"
-            (dblclick)="onRowClick($event, i, row)"
-            (keydown)="onRowKeyDown($event, i, row)">
+            (activate)="onActivate($event, i)">
           </datatable-body-row>
         </datatable-row-wrapper>
       </datatable-scroller>
@@ -104,12 +102,10 @@ export class DataTableBodyComponent {
   @Input() pageSize: number;
   @Input() offset: number;
   
-  //@Input() rowCount: number;
-
   @Input() set rowCount(val: number) {
     this._rowCount = val;
 
-    // THIS IS REALLY ODD I HAVE TO DO THIS!
+    // HACK: Investigate Better Way
     this.indexes = this.calcIndexes();
     this.updateRows();
   }
@@ -167,7 +163,7 @@ export class DataTableBodyComponent {
   get selectEnabled() {
     return !!this.selectionType;
   }
-
+  
   constructor(element: ElementRef, renderer: Renderer) {
     renderer.setElementClass(element.nativeElement, 'datatable-body', true);
   }
@@ -394,6 +390,10 @@ export class DataTableBodyComponent {
 
   getRowSelected(row) {
     // return this.getRowSelectedIdx(this.row, this.selected) > -1;
+  }
+
+  onActivate(event, index) {
+    console.log('activate', event, index)
   }
 
 }

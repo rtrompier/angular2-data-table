@@ -21,6 +21,7 @@ export class OrderableDirective {
   }
 
   ngAfterContentInit() {
+    // HACK: Investigate Better Way
     this.updateSubscriptions();
     this.draggables.changes.subscribe(
         this.updateSubscriptions.bind(this));

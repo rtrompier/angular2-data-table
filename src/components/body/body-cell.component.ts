@@ -1,8 +1,8 @@
 import {
-  Component, Input, PipeTransform, HostBinding
+  Component, Input, PipeTransform, HostBinding, Output, EventEmitter, HostListener
 } from '@angular/core';
 
-import { deepValueGetter } from '../../utils';
+import { deepValueGetter, Keys } from '../../utils';
 import { SortDirection } from '../../types';
 
 @Component({
@@ -28,6 +28,49 @@ export class DataTableBodyCellComponent {
   @Input() rowHeight: number;
   @Input() sorts: any;
 
+  @Output() activate: EventEmitter<any> = new EventEmitter();
+
+  @HostListener('click', ['$event'])
+  onClick(event) {
+    this.activate.emit({
+      type: 'click',
+      event,
+      column: this.column,
+      value: this.value
+    });
+  }
+
+  @HostListener('dblclick', ['$event'])
+  onDblClick(event) {
+    this.activate.emit({
+      type: 'dblclick',
+      event,
+      column: this.column,
+      value: this.value
+    });
+  }
+
+  @HostListener('keydown', ['$event'])
+  onKeyDown(event) {
+    const keyCode = event.keyCode;
+    const isAction = 
+      keyCode === Keys.return ||
+      keyCode === Keys.down ||
+      keyCode === Keys.up ||
+      keyCode === Keys.left ||
+      keyCode === Keys.right;
+
+    if(isAction) {
+      this.activate.emit({
+        type: 'keydown',
+        event,
+        row: this.row,
+        column: this.column,
+        value: this.value
+      });
+    }
+  }
+
   @HostBinding('class')
   get cssClasses(): string {
     let cls = 'datatable-body-cell';
@@ -41,12 +84,12 @@ export class DataTableBodyCellComponent {
   }
 
   @HostBinding('style.width.px')
-  get width(): any {
+  get width(): number {
     return this.column.width;
   }
 
   @HostBinding('style.height')
-  get height(): any {
+  get height(): string|number {
     const height = this.rowHeight;
     if(isNaN(height)) return height;
     return height + 'px';

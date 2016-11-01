@@ -1,19 +1,21 @@
-import { Component, Input, HostBinding, ElementRef, Renderer } from '@angular/core';
+import { Component, Input, HostBinding, ElementRef, Renderer, Output, EventEmitter } from '@angular/core';
 import { columnsByPin, columnGroupWidths, columnsByPinArr, translateXY } from '../../utils';
 
 @Component({
   selector: 'datatable-body-row',
   template: `
     <div
-      *ngFor="let colGroup of columnsByPin; trackBy: $colGroup?.type"
+      *ngFor="let colGroup of columnsByPin; let i = index; trackBy: $colGroup?.type"
       class="datatable-row-{{colGroup.type}} datatable-row-group"
       [ngStyle]="stylesByGroup(colGroup.type)"
       [style.width]="columnGroupWidths[colGroup.type] + 'px'">
       <datatable-body-cell
-        *ngFor="let column of colGroup.columns; trackBy: column?.$$id"
+        *ngFor="let column of colGroup.columns; let ii = index; trackBy: column?.$$id"
+        [attr.tabindex]="getCellTabIdx(rowIndex, i, ii)"
         [row]="row"
         [column]="column"
-        [rowHeight]="rowHeight">
+        [rowHeight]="rowHeight"
+        (activate)="activate.emit($event)">
       </datatable-body-cell>
     </div>
   `
@@ -32,6 +34,7 @@ export class DataTableBodyRowComponent {
     return this._columns; 
   }
 
+  @Input() rowIndex: number;
   @Input() row: any;
   @Input() innerWidth: number;
   @Input() scrollbarWidth: number;
@@ -40,6 +43,15 @@ export class DataTableBodyRowComponent {
 
   @HostBinding('class.active')
   @Input() isSelected: boolean;
+
+  @Output() activate: EventEmitter<any> = new EventEmitter();
+
+  @HostBinding('attr.tabindex')
+  private get rowTabIndex(): number {
+    const idx = this.rowIndex + 1;
+    if(idx === 1) return idx;
+    if(this.columns) return idx + this.columns.length;
+  }
 
   private columnGroupWidths: any;
   private columnsByPin: any;
@@ -67,6 +79,16 @@ export class DataTableBodyRowComponent {
     }
 
     return styles;
+  }
+
+  getCellTabIdx(rowIndex: number, groupIndex: number, cellIndex: number): number {
+    if(!this.columns) return 0;
+
+    rowIndex = rowIndex + 1;
+    cellIndex = cellIndex + 1; 
+
+    if(rowIndex === 1) return rowIndex + cellIndex;
+    return (rowIndex * this.columns.length) + cellIndex;
   }
 
 }
