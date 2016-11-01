@@ -1,7 +1,8 @@
 import { 
-  Component, Input, HostBinding, ElementRef, 
+  Component, Input, HostBinding, ElementRef, ChangeDetectionStrategy,
   Renderer, Output, EventEmitter , HostListener
 } from '@angular/core';
+
 import { 
   columnsByPin, columnGroupWidths, columnsByPinArr, 
   translateXY, Keys, scrollbarWidth
@@ -14,7 +15,7 @@ import {
       *ngFor="let colGroup of columnsByPin; let i = index; trackBy: $colGroup?.type"
       class="datatable-row-{{colGroup.type}} datatable-row-group"
       [ngStyle]="stylesByGroup(colGroup.type)"
-      [style.width]="columnGroupWidths[colGroup.type] + 'px'">
+      [style.width.px]="columnGroupWidths[colGroup.type]">
       <datatable-body-cell
         *ngFor="let column of colGroup.columns; let ii = index; trackBy: column?.$$id"
         tabindex="-1"
@@ -24,7 +25,8 @@ import {
         (activate)="onActivate($event, ii)">
       </datatable-body-cell>
     </div>
-  `
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DataTableBodyRowComponent {
 

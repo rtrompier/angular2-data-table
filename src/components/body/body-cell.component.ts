@@ -1,7 +1,7 @@
 import {
   Component, Input, PipeTransform, HostBinding, 
   Output, EventEmitter, HostListener, ElementRef,
-  Renderer
+  Renderer, ChangeDetectionStrategy
 } from '@angular/core';
 
 import { deepValueGetter, Keys } from '../../utils';
@@ -21,12 +21,13 @@ import { SortDirection } from '../../types';
         [ngOutletContext]="{ value: value, row: row, column: column }">
       </template>
     </div>
-  `
+  `,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DataTableBodyCellComponent {
 
-  @Input() column: any;
   @Input() row: any;
+  @Input() column: any;
   @Input() rowHeight: number;
 
   @Input() set sorts(val: any[]) {
@@ -71,7 +72,7 @@ export class DataTableBodyCellComponent {
   }
 
   get value(): any {
-    if (!this.row) return '';
+    if (!this.row || !this.column) return '';
     const prop = deepValueGetter(this.row, this.column.prop);
     const userPipe: PipeTransform = this.column.pipe;
     return userPipe ? userPipe.transform(prop) : prop;

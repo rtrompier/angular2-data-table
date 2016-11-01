@@ -1,11 +1,12 @@
 import {
-  Component, Input, Output, ElementRef, EventEmitter,
+  Component, Input, Output, ElementRef, EventEmitter, ViewChild,
   HostListener, ContentChildren, OnInit, QueryList, AfterViewInit,
   HostBinding, Renderer, ContentChild, TemplateRef, ChangeDetectionStrategy
 } from '@angular/core';
 
 import { forceFillColumnWidths, adjustColumnWidths, sortRows } from '../utils';
 import { ColumnMode, SortType, SelectionType } from '../types';
+import { DataTableBodyComponent } from './body';
 import { DataTableColumnDirective } from './column.directive';
 import { DatatableRowDetailDirective } from './row-detail.directive';
 import { scrollbarWidth, setColumnDefaults } from '../utils';
@@ -49,6 +50,7 @@ import { scrollbarWidth, setColumnDefaults } from '../utils';
         [selectionType]="selectionType"
         [emptyMessage]="emptyMessage"
         [rowIdentity]="rowIdentity"
+        (page)="onBodyPage($event)"
         (activate)="activate.emit($event)"
         (select)="select.emit($event)"
         (detailToggle)="toggle.emit($event)">
@@ -63,7 +65,7 @@ import { scrollbarWidth, setColumnDefaults } from '../utils';
         [pagerRightArrowIcon]="cssClasses.pagerRightArrow"
         [pagerPreviousIcon]="cssClasses.pagerPrevious"
         [pagerNextIcon]="cssClasses.pagerNext"
-        (page)="onPage($event)">
+        (page)="onFooterPage($event)">
       </datatable-footer>
     </div>
   `,
@@ -184,7 +186,6 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   @HostBinding('class.fixed-header')
   get isFixedHeader() {
     const headerHeight: number|string = this.headerHeight;
-
     return (typeof headerHeight === 'string') ?
       (<string>headerHeight) !== 'auto' : true;
   }
@@ -192,7 +193,6 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   @HostBinding('class.fixed-row')
   get isFixedRow() {
     const rowHeight: number|string = this.rowHeight;
-
     return (typeof rowHeight === 'string') ?
       (<string>rowHeight) !== 'auto' : true;
   }
@@ -215,10 +215,7 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   @ContentChildren(DataTableColumnDirective) 
   set columnTemplates(val: QueryList<DataTableColumnDirective>) {
     this._columnTemplates = val;
-
-    if(val) {
-      this.columns = val.toArray();
-    }
+    if(val) this.columns = val.toArray();
   }
 
   get columnTemplates(): QueryList<DataTableColumnDirective> {
@@ -237,6 +234,9 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   
   offsetX: number = 0;
   offsetY: number = 0;
+
+  @ViewChild(DataTableBodyComponent)
+  private bodyComponent: DataTableBodyComponent;
 
   private element: HTMLElement;
   private innerWidth: number;
@@ -320,9 +320,15 @@ export class DatatableComponent implements OnInit, AfterViewInit {
     return columns;
   }
 
-  onPage(ev) {
-    console.log('tood');
-    this.page.emit({  });
+  onBodyPage({ offset }) {
+    this.offset = offset;
+    this.page.emit(event);
+  }
+
+  onFooterPage(event) {
+    this.offset = event.page - 1;
+    this.bodyComponent.updateOffsetY(this.offset);
+    this.page.emit(event);
   }
 
   calcPageSize(val: any[]): number {
@@ -411,6 +417,7 @@ export class DatatableComponent implements OnInit, AfterViewInit {
     }
 
     this.sorts = sorts;
+    this.bodyComponent.updateOffsetY(0);
     this.sort.emit({ model, prevValue });
   }
 

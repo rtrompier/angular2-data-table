@@ -61,8 +61,23 @@ import { ScrollerComponent } from './scroller.component';
 })
 export class DataTableBodyComponent {
 
+  @Input() scrollbarV: boolean;
+  @Input() scrollbarH: boolean;
+  @Input() loadingIndicator: boolean;
+  @Input() rowHeight: number;
+  @Input() offsetX: number;
+  @Input() offsetY: number;
+  @Input() detailRowHeight: any;
+  @Input() emptyMessage: string;
+  @Input() selectionType: SelectionType;
+  @Input() selected: any[];
+  @Input() limit: number;
+  @Input() pageSize: number;
+  @Input() rowIdentity: any;
+
    @Input() set rows(val: any[]) {
     this._rows = val;
+    this.refreshRowHeightCache();
     this.updateIndexes();
     this.updateRows();
   }
@@ -81,23 +96,19 @@ export class DataTableBodyComponent {
     return this._columns; 
   }
 
-  @Input() scrollbarV: boolean;
-  @Input() scrollbarH: boolean;
-  @Input() loadingIndicator: boolean;
-  @Input() rowHeight: number;
-  @Input() offsetX: number;
-  @Input() offsetY: number;
-  @Input() detailRowHeight: any;
-  @Input() emptyMessage: string;
-  @Input() selectionType: SelectionType;
-  @Input() selected: any[];
-  @Input() limit: number;
-  @Input() pageSize: number;
-  @Input() offset: number;
-  @Input() rowIdentity: any;
+  @Input() set offset(val: number) {
+    this._offset = val;
+    this.updateIndexes();
+    this.updateRows();
+  }
+  
+  get offset(): number {
+    return this._offset;
+  }
   
   @Input() set rowCount(val: number) {
     this._rowCount = val;
+    this.refreshRowHeightCache();
     this.updateIndexes();
     this.updateRows();
   }
@@ -130,10 +141,11 @@ export class DataTableBodyComponent {
     }
   }
 
-  get bodyHeight() {
-    return this._bodyHeight;
+  get bodyHeight() { 
+    return this._bodyHeight; 
   }
 
+  @Output() page: EventEmitter<any> = new EventEmitter();
   @Output() activate: EventEmitter<any> = new EventEmitter();
   @Output() select: EventEmitter<any> = new EventEmitter();
   @Output() detailToggle: EventEmitter<any> = new EventEmitter();
@@ -150,8 +162,9 @@ export class DataTableBodyComponent {
   private _bodyWidth: any;
   private _columns: any[];
   private _rowCount: number;
+  private _offset: number;
 
-  get selectEnabled() {
+  get selectEnabled(): boolean {
     return !!this.selectionType;
   }
 
@@ -170,44 +183,47 @@ export class DataTableBodyComponent {
     renderer.setElementClass(element.nativeElement, 'datatable-body', true);
   }
 
-  onBodyScroll(props) {
+  updateOffsetY(offset?: number): void {
+    if(this.scrollbarV && offset) {
+      // First get the row Index that we need to move to.
+      const rowIndex = this.limit * offset;
+      offset = this.rowHeightsCache.query(rowIndex - 1);
+    }
+
+    this.scroller.setOffset(offset || 0);
+  }
+
+  onBodyScroll(props): void {
     this.offsetY = props.scrollYPos;
     this.offsetX = props.scrollXPos;
 
+    this.updateIndexes();
     this.updatePage(props.direction);
     this.updateRows();
   }
 
-  updatePage(direction) {
-    let page = this.indexes.first / this.pageSize;
+  updatePage(direction): void {
+    let offset = this.indexes.first / this.pageSize;
 
     if(direction === 'up') {
-      page = Math.floor(page);
+      offset = Math.floor(offset);
     } else if(direction === 'down') {
-      page = Math.ceil(page);
+      offset = Math.ceil(offset);
     }
 
-    if(direction !== undefined && !isNaN(page)) {
-      // pages are offset + 1 ;)
-      /*
-      this.state.setPage({
-        type: 'body-event',
-        value: page + 1
-      });
-      */
+    if(direction !== undefined && !isNaN(offset)) {
+      this.page.emit({ offset });
     }
   }
 
-  updateRows(refresh?: boolean) {
+  updateRows(): void {
     const { first, last } = this.indexes;
     let rowIndex = first;
     let idx = 0;
-
-    const endSpliceIdx = refresh ? this.rowCount : last - first;
-    let temp = this.rows.slice(0, endSpliceIdx);
+    let temp = [];
 
     while (rowIndex < last && rowIndex < this.rowCount) {
-      let row = temp[rowIndex];
+      let row = this.rows[rowIndex];
 
       if(row) {
         row.$$index = rowIndex;
@@ -218,10 +234,7 @@ export class DataTableBodyComponent {
       rowIndex++;
     }
 
-    console.log('temps', temp, first, last)
-
     this.temp = temp;
-    this.refreshRowHeightCache();
   }
 
   /**
@@ -233,7 +246,7 @@ export class DataTableBodyComponent {
   getRowHeight(row: any): number {
     // Adding detail row height if its expanded.
     return this.rowHeight +
-      (row.$$expanded === 1 ? this.detailRowHeight : 0 );
+      (row.$$expanded === 1 ? this.detailRowHeight : 0);
   }
 
   /**
@@ -254,7 +267,7 @@ export class DataTableBodyComponent {
    * @param row The row that needs to be placed in the 2D space.
    * @returns {{styles: string}}  Returns the CSS3 style to be applied
    */
-  getRowsStyles(row) {
+  getRowsStyles(row): any {
     const rowHeight = this.getRowHeight(row);
 
     let styles = {
@@ -287,8 +300,9 @@ export class DataTableBodyComponent {
       // Calculation of the first and last indexes will be based on where the
       // scrollY position would be at.  The last index would be the one
       // that shows up inside the view port the last.
+      const height = parseInt(this.bodyHeight, 0);
       first = this.rowHeightsCache.getRowIndex(this.offsetY);
-      last = this.rowHeightsCache.getRowIndex(this.bodyHeight + this.offsetY) + 1;
+      last = this.rowHeightsCache.getRowIndex(height + this.offsetY) + 1;
     } else {
       first = Math.max(this.offset * this.pageSize, 0);
       last = Math.min((first + this.pageSize), this.rowCount);
@@ -338,7 +352,7 @@ export class DataTableBodyComponent {
    *
    * @param row The row for which the expansion needs to be toggled.
    */
-  toggleRowExpansion(row: any) {
+  toggleRowExpansion(row: any): void {
     // Capture the row index of the first row that is visible on the viewport.
     let viewPortFirstRowIndex =  this.getAdjustedViewPortIndex();
 
@@ -365,7 +379,7 @@ export class DataTableBodyComponent {
    *
    * @param expanded When true, all rows are expanded and when false, all rows will be collapsed.
    */
-  toggleAllRows(expanded: boolean) {
+  toggleAllRows(expanded: boolean): void {
     let rowExpanded = expanded ? 1 : 0;
     // Capture the row index of the first row that is visible on the viewport.
     let viewPortFirstRowIndex =  this.getAdjustedViewPortIndex();

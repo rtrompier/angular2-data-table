@@ -18,7 +18,7 @@ import {
         [size]="pageSize"
         [count]="rowCount"
         [hidden]="!isVisible"
-        (pageChange)="pageChange.emit($event)">
+        (change)="page.emit($event)">
        </datatable-pager>
      </div>
   `,
@@ -35,7 +35,7 @@ export class DataTableFooterComponent {
   @Input() pagerPreviousIcon: string;
   @Input() pagerNextIcon: string;
 
-  @Output() pageChange: EventEmitter<any> = new EventEmitter();
+  @Output() page: EventEmitter<any> = new EventEmitter();
 
   get isVisible() {
     return (this.rowCount / this.pageSize) > 1;

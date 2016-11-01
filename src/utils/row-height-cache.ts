@@ -136,14 +136,14 @@ export class RowHeightCache {
    * @param sum - The scrollY position.
    * @returns {number} - Index representing the first row visible in the viewport
    */
-  private calcRowIndex(sum: number) {
+  private calcRowIndex(sum: number): number {
     if(!this.treeArray.length) return 0;
 
     let pos = -1;
     const dataLength = this.treeArray.length;
 
     // Get the highest bit for the block size.
-    let highestBit = Math.pow(2, dataLength.toString(2).length - 1);
+    const highestBit = Math.pow(2, dataLength.toString(2).length - 1);
 
     for (let blockSize = highestBit; blockSize !== 0; blockSize >>= 1) {
       let nextPos = pos + blockSize;

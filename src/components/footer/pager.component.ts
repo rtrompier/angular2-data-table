@@ -61,7 +61,7 @@ export class DataTablePagerComponent {
   @Input() pagerPreviousIcon: string;
   @Input() pagerNextIcon: string;
 
-  @Output() pageChange: EventEmitter<any> = new EventEmitter();
+  @Output() change: EventEmitter<any> = new EventEmitter();
 
   @Input()
   set count(val: number) {
@@ -118,9 +118,8 @@ export class DataTablePagerComponent {
     if (page > 0 && page <= this.totalPages) {
       this.page = page;
 
-      this.pageChange.emit({
-        type: 'pager-event',
-        value: page
+      this.change.emit({
+        page
       });
     }
   }
