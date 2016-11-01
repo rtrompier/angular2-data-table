@@ -1,26 +1,24 @@
 import {
-  Component,
-  Output,
-  EventEmitter,
-  Input,
-  OnInit,
-  HostBinding,
-  OnDestroy,
-  ViewChild,
-  ElementRef,
-  Renderer,
-  ChangeDetectionStrategy
+  Component, Output, EventEmitter, Input, HostBinding,
+  ViewChild, ElementRef, Renderer, ChangeDetectionStrategy
 } from '@angular/core';
-
-import { Subscription } from 'rxjs/Subscription';
-import { Keys, selectRows, selectRowsBetween, translateXY, columnsByPin, columnGroupWidths } from '../../utils';
-import { SelectionType, ClickType } from '../../types';
+import { translateXY, columnsByPin, columnGroupWidths } from '../../utils';
+import { SelectionType } from '../../types';
 import { ScrollerComponent } from './scroller.component';
+import { Subscription } from 'rxjs/Subscription';
 
 @Component({
   selector: 'datatable-body',
   template: `
-    <div>
+    <datatable-selection 
+      #selector
+      [selected]="selected"
+      [rows]="rows"
+      [selectEnabled]="selectEnabled"
+      [selectionType]="selectionType"
+      [rowIdentity]="rowIdentity"
+      (select)="select.emit($event)"
+      (activate)="activate.emit($event)">
       <datatable-progress
         *ngIf="loadingIndicator">
       </datatable-progress>
@@ -42,18 +40,14 @@ import { ScrollerComponent } from './scroller.component';
           [detailRowHeight]="detailRowHeight"
           [row]="row">
           <datatable-body-row
-            [style.height.px]="rowHeight"
-            [rowIndex]="i"
-            [isSelected]="getRowSelected(row)"
+            tabindex="-1"
+            [isSelected]="selector.getRowSelected(row)"
             [innerWidth]="innerWidth"
-            [scrollbarWidth]="scrollbarWidth"
             [offsetX]="offsetX"
             [columns]="columns"
             [rowHeight]="rowHeight"
             [row]="row"
-            [class.datatable-row-even]="row.$$index % 2 === 0"
-            [class.datatable-row-odd]="row.$$index % 2 !== 0"
-            (activate)="onActivate($event, i)">
+            (activate)="selector.onActivate($event, i)">
           </datatable-body-row>
         </datatable-row-wrapper>
       </datatable-scroller>
@@ -62,7 +56,7 @@ import { ScrollerComponent } from './scroller.component';
         *ngIf="!rows.length"
         [innerHTML]="emptyMessage">
       </div>
-    </div>
+    </datatable-selection>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -101,6 +95,7 @@ export class DataTableBodyComponent {
   @Input() limit: number;
   @Input() pageSize: number;
   @Input() offset: number;
+  @Input() rowIdentity: any;
   
   @Input() set rowCount(val: number) {
     this._rowCount = val;
@@ -142,15 +137,14 @@ export class DataTableBodyComponent {
     return this._bodyHeight;
   }
 
-  @Output() rowClick: EventEmitter<any> = new EventEmitter();
-  @Output() rowSelect: EventEmitter<any> = new EventEmitter();
+  @Output() activate: EventEmitter<any> = new EventEmitter();
+  @Output() select: EventEmitter<any> = new EventEmitter();
 
   @ViewChild(ScrollerComponent) scroller: ScrollerComponent;
 
   private temp: any[] = [];
   private rowHeightsCache: any;
   private scrollHeight: any;
-  private prevIndex: number;
   private indexes: any;
   private columnGroupWidths: any;
 
@@ -315,62 +309,7 @@ export class DataTableBodyComponent {
     setTimeout(() => this.loadingIndicator = false, 500);
   }
 
-  onRowClick(event, index, row): void {
-    let clickType = event.type === 'dblclick' ? 
-      ClickType.double : 
-      ClickType.single;
-
-    this.rowClick.emit({ type: clickType, event, row });
-    this.selectRow(event, index, row);
-  }
-
-  onRowKeyDown(event, index, row) {
-    if (event.keyCode === Keys.return && this.selectEnabled) {
-      this.selectRow(event, index, row);
-    } else if (event.keyCode === Keys.up || event.keyCode === Keys.down) {
-      const dom = event.keyCode === Keys.up ?
-        event.target.previousElementSibling :
-        event.target.nextElementSibling;
-
-      if (dom) dom.focus();
-    }
-  }
-
-  selectRow(event, index, row) {
-    /*
-    if (!this.selectEnabled) return;
-
-    const multiShift = this.state.options.selectionType === SelectionType.multiShift;
-    const multiClick = this.state.options.selectionType === SelectionType.multi;
-    let selections = [];
-
-    if (multiShift || multiClick) {
-      if (multiShift && event.shiftKey) {
-        const selected = [...this.state.selected];
-        selections = selectRowsBetween(
-          selected, this.rows, index, this.prevIndex,
-          (r, s) => { return this.state.getRowSelectedIdx(r, s); });
-      } else if (multiShift && !event.shiftKey) {
-        selections.push(row);
-      } else {
-        const selected = [...this.state.selected];
-        selections = selectRows(selected, row,
-          (r, s) => { return this.getRowSelectedIdx(r, s); });
-      }
-    } else {
-      selections.push(row);
-    }
-
-    this.prevIndex = index;
-    this.rowSelect.emit(selections);
-    */
-  }
-
-  ngOnDestroy(): void {
-    // if (this.sub) this.sub.unsubscribe();
-  }
-
-  calcIndexes() {
+  calcIndexes(): any {
     let first = 0;
     let last = 0;
 
@@ -386,14 +325,6 @@ export class DataTableBodyComponent {
     }
 
     return { first, last };
-  }
-
-  getRowSelected(row) {
-    // return this.getRowSelectedIdx(this.row, this.selected) > -1;
-  }
-
-  onActivate(event, index) {
-    console.log('activate', event, index)
   }
 
 }

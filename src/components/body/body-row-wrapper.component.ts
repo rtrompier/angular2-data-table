@@ -1,4 +1,4 @@
-import { Component, Input, Renderer, ElementRef } from '@angular/core';
+import { Component, Input, Renderer, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
   selector: 'datatable-row-wrapper',
@@ -14,6 +14,7 @@ import { Component, Input, Renderer, ElementRef } from '@angular/core';
       </template>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DataTableRowWrapperComponent {
 

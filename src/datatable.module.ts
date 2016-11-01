@@ -14,7 +14,8 @@ import {
   ProgressBarComponent,
   DataTableBodyCellComponent,
   DatatableRowDetailDirective,
-  ScrollerComponent
+  ScrollerComponent,
+  DataTableSelectionComponent
 } from './components';
 
 import {
@@ -47,7 +48,8 @@ import {
     DataTableBodyRowComponent,
     DataTableRowWrapperComponent,
     DatatableRowDetailDirective,
-    DataTableBodyCellComponent
+    DataTableBodyCellComponent,
+    DataTableSelectionComponent
   ],
   exports: [
     DatatableComponent,

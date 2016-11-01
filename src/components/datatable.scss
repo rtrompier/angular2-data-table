@@ -99,6 +99,10 @@
     -ms-user-select: none;
     -o-user-select: none;
     user-select: none;
+    
+    &:focus {
+      outline: none;
+    }
   }
 
   .datatable-row-left,

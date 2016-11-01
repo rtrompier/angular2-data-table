@@ -49,8 +49,9 @@ import { scrollbarWidth } from '../utils';
         [bodyHeight]="bodyHeight"
         [selectionType]="selectionType"
         [emptyMessage]="emptyMessage"
-        (rowClick)="rowClick.emit($event)"
-        (rowSelect)="onRowSelect($event)">
+        [rowIdentity]="rowIdentity"
+        (activate)="activate.emit($event)"
+        (select)="select.emit($event)">
       </datatable-body>
       <datatable-footer
         *ngIf="footerHeight"
@@ -62,7 +63,7 @@ import { scrollbarWidth } from '../utils';
         [pagerRightArrowIcon]="cssClasses.pagerRightArrow"
         [pagerPreviousIcon]="cssClasses.pagerPrevious"
         [pagerNextIcon]="cssClasses.pagerNext"
-        (pageChange)="setPage($event)">
+        (page)="onPage($event)">
       </datatable-footer>
     </div>
   `,
@@ -172,12 +173,11 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   // (`fn(x) === fn(y)` instead of `x === y`)
   @Input() rowIdentity = ((x) => x);
 
-  @Output() pageChange: EventEmitter<any> = new EventEmitter();
-  @Output() rowUpdate: EventEmitter<any> = new EventEmitter();
-  @Output() rowClick: EventEmitter<any> = new EventEmitter();
-  @Output() selection: EventEmitter<any> = new EventEmitter();
-  @Output() columnChange: EventEmitter<any> = new EventEmitter();
+  @Output() activate: EventEmitter<any> = new EventEmitter();
+  @Output() select: EventEmitter<any> = new EventEmitter();
   @Output() sort: EventEmitter<any> = new EventEmitter();
+  @Output() page: EventEmitter<any> = new EventEmitter();
+  @Output() columnChange: EventEmitter<any> = new EventEmitter();
 
   @HostBinding('class.fixed-header')
   get isFixedHeader() {
@@ -239,7 +239,6 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   offsetY: number = 0;
 
   private element: HTMLElement;
-  private scrollbarWidth: number = scrollbarWidth();
   private innerWidth: number;
   private pageSize: number;
   private bodyHeight: number;
@@ -309,7 +308,7 @@ export class DatatableComponent implements OnInit, AfterViewInit {
 
     let width = this.innerWidth;
     if (this.scrollbarV) {
-      width = width - this.scrollbarWidth;
+      width = width - scrollbarWidth;
     }
 
     if (this.columnMode === ColumnMode.force) {
@@ -321,9 +320,9 @@ export class DatatableComponent implements OnInit, AfterViewInit {
     return columns;
   }
 
-  setPage(ev) {
+  onPage(ev) {
     console.log('tood');
-    this.pageChange.emit({  });
+    this.page.emit({  });
   }
 
   calcPageSize(val: any[]): number {
@@ -355,7 +354,9 @@ export class DatatableComponent implements OnInit, AfterViewInit {
     if(!columns) return;
     
     for(let column of columns) {
-      column.$$id = id();
+      if(!column.$$id) {
+        column.$$id = id();
+      }
       
       // translate name => prop
       if(!column.prop && column.name) {
