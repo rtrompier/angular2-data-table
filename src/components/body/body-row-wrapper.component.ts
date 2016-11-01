@@ -5,8 +5,8 @@ import { Component, Input, Renderer, ElementRef, ChangeDetectionStrategy } from 
   template: `
     <ng-content></ng-content>
     <div 
-      *ngIf="row.$$expanded === 1 && rowDetailTemplate"
-      [style.height]="detailRowHeight +  'px'" 
+      *ngIf="isActive"
+      [style.height.px]="detailRowHeight" 
       class="datatable-row-detail">
       <template
         [ngTemplateOutlet]="rowDetailTemplate"
@@ -22,7 +22,12 @@ export class DataTableRowWrapperComponent {
   @Input() detailRowHeight: any;
   @Input() row: any;
 
+  get isActive(): boolean {
+    return this.row.$$expanded === 1 && this.rowDetailTemplate;
+  }
+
   constructor(public element: ElementRef, renderer: Renderer) {
     renderer.setElementClass(this.element.nativeElement, 'datatable-row-wrapper', true);
   }
+
 }

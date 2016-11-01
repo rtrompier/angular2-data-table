@@ -2,10 +2,9 @@ import {
   Component, Output, EventEmitter, Input, HostBinding,
   ViewChild, ElementRef, Renderer, ChangeDetectionStrategy
 } from '@angular/core';
-import { translateXY, columnsByPin, columnGroupWidths } from '../../utils';
+import { translateXY, columnsByPin, columnGroupWidths, RowHeightCache } from '../../utils';
 import { SelectionType } from '../../types';
 import { ScrollerComponent } from './scroller.component';
-import { Subscription } from 'rxjs/Subscription';
 
 @Component({
   selector: 'datatable-body',
@@ -24,14 +23,14 @@ import { Subscription } from 'rxjs/Subscription';
       </datatable-progress>
       <datatable-scroller
         *ngIf="rows.length"
-        (scroll)="onBodyScroll($event)"
         [rowHeight]="rowHeight"
         [scrollbarV]="scrollbarV"
         [scrollbarH]="scrollbarH"
         [count]="rowCount"
         [scrollHeight]="scrollHeight"
         [limit]="limit"
-        [scrollWidth]="columnGroupWidths.total">
+        [scrollWidth]="columnGroupWidths.total"
+        (scroll)="onBodyScroll($event)">
         <datatable-row-wrapper 
           *ngFor="let row of temp; let i = index; trackBy: row?.$$index"
           [ngStyle]="getRowsStyles(row)"
@@ -64,7 +63,7 @@ export class DataTableBodyComponent {
 
    @Input() set rows(val: any[]) {
     this._rows = val;
-    this.indexes = this.calcIndexes();
+    this.updateIndexes();
     this.updateRows();
   }
 
@@ -99,9 +98,7 @@ export class DataTableBodyComponent {
   
   @Input() set rowCount(val: number) {
     this._rowCount = val;
-
-    // HACK: Investigate Better Way
-    this.indexes = this.calcIndexes();
+    this.updateIndexes();
     this.updateRows();
   }
 
@@ -139,12 +136,12 @@ export class DataTableBodyComponent {
 
   @Output() activate: EventEmitter<any> = new EventEmitter();
   @Output() select: EventEmitter<any> = new EventEmitter();
+  @Output() detailToggle: EventEmitter<any> = new EventEmitter();
 
   @ViewChild(ScrollerComponent) scroller: ScrollerComponent;
 
+  private rowHeightsCache: RowHeightCache = new RowHeightCache();
   private temp: any[] = [];
-  private rowHeightsCache: any;
-  private scrollHeight: any;
   private indexes: any;
   private columnGroupWidths: any;
 
@@ -157,53 +154,21 @@ export class DataTableBodyComponent {
   get selectEnabled() {
     return !!this.selectionType;
   }
+
+  /**
+   * Property that would calculate the height of scroll bar
+   * based on the row heights cache for virtual scroll. Other scenarios
+   * calculate scroll height automatically (as height will be undefined).
+   */
+  get scrollHeight(): number {
+    if(this.scrollbarV) {
+      return this.rowHeightsCache.query(this.rowCount - 1);
+    }
+  }
   
   constructor(element: ElementRef, renderer: Renderer) {
     renderer.setElementClass(element.nativeElement, 'datatable-body', true);
   }
-
-  /*
-  ngOnInit(): void {
-    this.rows = [...this.state.rows];
-    this.updateRows();
-
-    this.sub = this.state.onPageChange.subscribe((action) => {
-      this.updateRows();
-      this.hideIndicator();
-
-      if(this.state.options.scrollbarV && action.type === 'pager-event') {
-        // First get the row Index that we need to move to.
-        const rowIndex = action.limit * action.offset;
-        // const offset = (this.state.options.rowHeight * action.limit) * action.offset;
-        this.scroller.setOffset(this.state.rowHeightsCache.query(rowIndex - 1));
-      }
-    });
-
-    this.sub.add(this.state.onExpandChange.subscribe( (expandedState) => {
-      if(this.state.options.scrollbarV) {
-        // If there was more than one row expanded then there was a mass change
-        // in the data set hence adjust the scroll position.
-        if (expandedState.rows.length > 1) {
-          // -1 is added to the scrollOffset as we want to move the scroller to the offset position
-          // where the entire row is visible. What about the small offset e.g. if the scroll
-          // position is between rows?  Do we need to take care of it?
-          let scrollOffset = this.state.rowHeightsCache.query(expandedState.currentIndex);
-          // Set the offset only after the scroll bar has been updated on the screen.
-          setTimeout(() => this.scroller.setOffset(scrollOffset));
-        }
-      }
-    }));
-
-    this.sub.add(this.state.onRowsUpdate.subscribe(rows => {
-      this.updateRows();
-      this.hideIndicator();
-    }));
-
-    this.sub.add(this.state.onSortChange.subscribe(() => {
-      this.scroller.setOffset(0);
-    }));
-  }
-  */
 
   onBodyScroll(props) {
     this.offsetY = props.scrollYPos;
@@ -234,9 +199,9 @@ export class DataTableBodyComponent {
   }
 
   updateRows(refresh?: boolean) {
-    let idx = 0;
     const { first, last } = this.indexes;
     let rowIndex = first;
+    let idx = 0;
 
     const endSpliceIdx = refresh ? this.rowCount : last - first;
     let temp = this.rows.slice(0, endSpliceIdx);
@@ -253,7 +218,10 @@ export class DataTableBodyComponent {
       rowIndex++;
     }
 
+    console.log('temps', temp, first, last)
+
     this.temp = temp;
+    this.refreshRowHeightCache();
   }
 
   /**
@@ -295,10 +263,12 @@ export class DataTableBodyComponent {
 
     if(this.scrollbarV) {
       const idx = row ? row.$$index : 0;
+      
       // const pos = idx * rowHeight;
       // The position of this row would be the sum of all row heights
       // until the previous row position.
       const pos = this.rowHeightsCache.query(idx - 1);
+
       translateXY(styles, 0, pos);
     }
 
@@ -309,7 +279,7 @@ export class DataTableBodyComponent {
     setTimeout(() => this.loadingIndicator = false, 500);
   }
 
-  calcIndexes(): any {
+  updateIndexes(): void {
     let first = 0;
     let last = 0;
 
@@ -324,7 +294,99 @@ export class DataTableBodyComponent {
       last = Math.min((first + this.pageSize), this.rowCount);
     }
 
-    return { first, last };
+    this.indexes = { first, last };
+  }
+
+  /**
+   *  Refreshes the full Row Height cache.  Should be used
+   *  when the entire row array state has changed.
+   */
+  refreshRowHeightCache(): void {
+    if(!this.scrollbarV) return;
+
+    // clear the previous row height cache if already present.
+    // this is useful during sorts, filters where the state of the
+    // rows array is changed.
+    this.rowHeightsCache.clearCache();
+
+    // Initialize the tree only if there are rows inside the tree.
+    if (this.rows.length) {
+      this.rowHeightsCache.initCache(
+        this.rows, this.rowHeight, this.detailRowHeight);
+    }
+  }
+
+  getAdjustedViewPortIndex(): number {
+    // Capture the row index of the first row that is visible on the viewport.
+    // If the scroll bar is just below the row which is highlighted then make that as the
+    // first index.
+    let viewPortFirstRowIndex =  this.indexes.first;
+
+    if (this.scrollbarV) {
+      let offsetScroll = this.rowHeightsCache.query(viewPortFirstRowIndex - 1);
+      return offsetScroll <= this.offsetY ? viewPortFirstRowIndex - 1 : viewPortFirstRowIndex;
+    }
+
+    return viewPortFirstRowIndex;
+  }
+
+  /**
+   * Toggle the Expansion of the row i.e. if the row is expanded then it will
+   * collapse and vice versa.   Note that the expanded status is stored as
+   * a part of the row object itself as we have to preserve the expanded row
+   * status in case of sorting and filtering of the row set.
+   *
+   * @param row The row for which the expansion needs to be toggled.
+   */
+  toggleRowExpansion(row: any) {
+    // Capture the row index of the first row that is visible on the viewport.
+    let viewPortFirstRowIndex =  this.getAdjustedViewPortIndex();
+
+    // If the detailRowHeight is auto --> only in case of non-virtualized scroll
+    if(this.scrollbarV) {
+      const detailRowHeight = this.detailRowHeight * (row.$$expanded ? -1 : 1);
+      this.rowHeightsCache.update(row.$$index, detailRowHeight);
+    }
+    
+    // Update the toggled row and update the heights in the cache.
+    row.$$expanded ^= 1;
+
+    this.detailToggle.emit({
+      rows: [row], 
+      currentIndex: viewPortFirstRowIndex 
+    });
+
+    // Broadcast the event to let know that the rows array has been updated.
+    // this.onRowsUpdate.emit(this.rows);
+  }
+
+  /**
+   * Expand/Collapse all the rows no matter what their state is.
+   *
+   * @param expanded When true, all rows are expanded and when false, all rows will be collapsed.
+   */
+  toggleAllRows(expanded: boolean) {
+    let rowExpanded = expanded ? 1 : 0;
+    // Capture the row index of the first row that is visible on the viewport.
+    let viewPortFirstRowIndex =  this.getAdjustedViewPortIndex();
+
+    this.rows.forEach((row: any) => {
+      row.$$expanded = rowExpanded;
+    });
+
+    if(this.scrollbarV) {
+      // Refresh the full row heights cache since every row was affected.
+      this.refreshRowHeightCache();
+    }
+
+    // Emit all rows that have been expanded.
+    this.detailToggle.emit({
+      rows: this.rows, 
+      currentIndex: viewPortFirstRowIndex 
+    });
+
+    // Broadcast the event to let know that the rows array has been updated.
+    // this.onRowsUpdate.emit(this.rows);
   }
 
 }

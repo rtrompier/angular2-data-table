@@ -21,7 +21,8 @@ export class DataTableColumnDirective {
   @Input() width;
   @Input() maxWidth;
 
-  @ContentChildren(TemplateRef) templates: QueryList<TemplateRef<any>>;
+  @ContentChildren(TemplateRef) 
+  templates: QueryList<TemplateRef<any>>;
 
   get hasHeaderTemplate() {
     // this is a tad nasty but can't think of a better way

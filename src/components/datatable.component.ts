@@ -1,15 +1,14 @@
 import {
   Component, Input, Output, ElementRef, EventEmitter,
-  HostListener, KeyValueDiffers, ContentChildren, OnInit,
-  OnChanges, QueryList, DoCheck, AfterViewInit, IterableDiffer,
+  HostListener, ContentChildren, OnInit, QueryList, AfterViewInit,
   HostBinding, Renderer, ContentChild, TemplateRef, ChangeDetectionStrategy
 } from '@angular/core';
 
-import { forceFillColumnWidths, adjustColumnWidths, camelCase, id, sortRows } from '../utils';
+import { forceFillColumnWidths, adjustColumnWidths, sortRows } from '../utils';
 import { ColumnMode, SortType, SelectionType } from '../types';
-import { DataTableColumnDirective } from './datatable-column.directive';
-import { DatatableRowDetailDirective } from './datatable-row-detail.directive';
-import { scrollbarWidth } from '../utils';
+import { DataTableColumnDirective } from './column.directive';
+import { DatatableRowDetailDirective } from './row-detail.directive';
+import { scrollbarWidth, setColumnDefaults } from '../utils';
 
 @Component({
   selector: 'datatable',
@@ -51,7 +50,8 @@ import { scrollbarWidth } from '../utils';
         [emptyMessage]="emptyMessage"
         [rowIdentity]="rowIdentity"
         (activate)="activate.emit($event)"
-        (select)="select.emit($event)">
+        (select)="select.emit($event)"
+        (detailToggle)="toggle.emit($event)">
       </datatable-body>
       <datatable-footer
         *ngIf="footerHeight"
@@ -84,7 +84,8 @@ export class DatatableComponent implements OnInit, AfterViewInit {
 
   // Columns
   @Input() set columns(val: any[]) {
-    this.setColumnDefaults(val);
+    val = val || [];
+    setColumnDefaults(val);
     this._columns = val;
   }
 
@@ -177,6 +178,7 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   @Output() select: EventEmitter<any> = new EventEmitter();
   @Output() sort: EventEmitter<any> = new EventEmitter();
   @Output() page: EventEmitter<any> = new EventEmitter();
+  @Output() detailToggle: EventEmitter<any> = new EventEmitter();
   @Output() columnChange: EventEmitter<any> = new EventEmitter();
 
   @HostBinding('class.fixed-header')
@@ -215,9 +217,7 @@ export class DatatableComponent implements OnInit, AfterViewInit {
     this._columnTemplates = val;
 
     if(val) {
-      for (let col of val.toArray()) {
-        this.columns.push(col);
-      }
+      this.columns = val.toArray();
     }
   }
 
@@ -348,41 +348,6 @@ export class DatatableComponent implements OnInit, AfterViewInit {
     }
 
     return this.count;
-  }
-
-  setColumnDefaults(columns: any[]) {
-    if(!columns) return;
-    
-    for(let column of columns) {
-      if(!column.$$id) {
-        column.$$id = id();
-      }
-      
-      // translate name => prop
-      if(!column.prop && column.name) {
-        column.prop = camelCase(column.name);
-      }
-    
-      if(!column.hasOwnProperty('resizeable')) {
-        column.resizeable = true;
-      }
-
-      if(!column.hasOwnProperty('sortable')) {
-        column.sortable = true;
-      }
-
-      if(!column.hasOwnProperty('draggable')) {
-        column.draggable = true;
-      }
-
-      if(!column.hasOwnProperty('canAutoResize')) {
-        column.canAutoResize = true;
-      }
-
-      if(!column.hasOwnProperty('width')) {
-        column.width = 150;
-      }
-    }
   }
 
   onColumnChange(changes) {

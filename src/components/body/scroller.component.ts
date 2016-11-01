@@ -1,12 +1,6 @@
 import {
-  Component,
-  Input,
-  ElementRef,
-  Output,
-  EventEmitter,
-  OnInit,
-  OnDestroy,
-  ChangeDetectionStrategy
+  Component, Input, ElementRef, Output, EventEmitter,
+  OnInit, OnDestroy, ChangeDetectionStrategy, HostBinding
 } from '@angular/core';
 
 @Component({
@@ -14,21 +8,22 @@ import {
   template: `
     <ng-content></ng-content>
   `,
-  host: {
-    '[style.height]': 'scrollHeight + "px"',
-    '[style.width]': 'scrollWidth + "px"'
-  },
-    changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ScrollerComponent implements OnInit, OnDestroy {
 
   @Input() rowHeight: number;
   @Input() count: number;
   @Input() limit: number;
-  @Input() scrollWidth: number;
+  
   @Input() scrollbarV: boolean = false;
   @Input() scrollbarH: boolean = false;
+
+  @HostBinding('style.height.px')
   @Input() scrollHeight: number;
+
+  @HostBinding('style.width.px')
+  @Input() scrollWidth: number;
 
   @Output() scroll: EventEmitter<any> = new EventEmitter();
 
