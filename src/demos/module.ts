@@ -5,27 +5,38 @@ import { removeNgStyles, createNewHosts } from '@angularclass/hmr';
 import { Angular2DataTableModule } from '../index';
 import '../components/datatable.scss';
 
+// -- Basic
 // import { App } from './basic-fixed';
 // import { App } from './basic-auto';
-// import { App } from './paging-client';
-// import { App } from './paging-server';
-// import { App } from './sorting-server';
-// import { App } from './sorting-client';
-// import { App } from './selection';
-// import { App } from './virtual';
+import { App } from './virtual';
 // import { App } from './inline';
 // import { App } from './scrolling';
-// import { App } from './pinning';
 // import { App } from './multiple';
+// import { App } from './fullscreen';
+// import { App } from './row-detail';
+
+// -- Paging
+// import { App } from './paging-client';
+// import { App } from './paging-server';
+
+// -- Sorting
+// import { App } from './sorting-server';
+// import { App } from './sorting-client';
+
+// -- Templates
+// import { App } from './template-dom';
+// import { App } from './template-obj';
+
+// -- Selection
+// import { App } from './selection-cell';
+// import { App } from './selection-multi';
+
+// -- Columns
 // import { App } from './column-toggle';
 // import { App } from './column-standard';
 // import { App } from './column-force';
 // import { App } from './column-flex';
-// import { App } from './fullscreen';
-// import { App } from './template-dom';
-// import { App } from './template-obj';
-// import { App } from './row-detail';
-import { App } from './rx';
+// import { App } from './pinning';
 
 @NgModule({
   declarations: [App],
