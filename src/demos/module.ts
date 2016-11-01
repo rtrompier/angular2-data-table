@@ -8,12 +8,12 @@ import '../components/datatable.scss';
 // -- Basic
 // import { App } from './basic-fixed';
 // import { App } from './basic-auto';
-import { App } from './virtual';
+// import { App } from './virtual';
 // import { App } from './inline';
 // import { App } from './scrolling';
 // import { App } from './multiple';
 // import { App } from './fullscreen';
-// import { App } from './row-detail';
+import { App } from './row-detail';
 
 // -- Paging
 // import { App } from './paging-client';

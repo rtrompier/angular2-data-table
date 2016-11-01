@@ -5,10 +5,11 @@ import { Component, Input, Renderer, ElementRef, ChangeDetectionStrategy } from 
   template: `
     <ng-content></ng-content>
     <div 
-      *ngIf="isActive"
+      *ngIf="expanded"
       [style.height.px]="detailRowHeight" 
       class="datatable-row-detail">
       <template
+        *ngIf="rowDetailTemplate"
         [ngTemplateOutlet]="rowDetailTemplate"
         [ngOutletContext]="{ row: row }">
       </template>
@@ -20,14 +21,11 @@ export class DataTableRowWrapperComponent {
 
   @Input() rowDetailTemplate: any;
   @Input() detailRowHeight: any;
+  @Input() expanded: boolean = false;
   @Input() row: any;
 
-  get isActive(): boolean {
-    return this.row.$$expanded === 1 && this.rowDetailTemplate;
-  }
-
-  constructor(public element: ElementRef, renderer: Renderer) {
-    renderer.setElementClass(this.element.nativeElement, 'datatable-row-wrapper', true);
+  constructor(element: ElementRef, renderer: Renderer) {
+    renderer.setElementClass(element.nativeElement, 'datatable-row-wrapper', true);
   }
 
 }

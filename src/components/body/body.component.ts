@@ -34,10 +34,10 @@ import { ScrollerComponent } from './scroller.component';
         <datatable-row-wrapper 
           *ngFor="let row of temp; let i = index; trackBy: row?.$$index"
           [ngStyle]="getRowsStyles(row)"
-          [style.height.px]="getRowHeight(row)"
           [rowDetailTemplate]="rowDetailTemplate"
           [detailRowHeight]="detailRowHeight"
-          [row]="row">
+          [row]="row"
+          [expanded]="row.$$expanded === 1">
           <datatable-body-row
             tabindex="-1"
             [isSelected]="selector.getRowSelected(row)"
@@ -74,8 +74,9 @@ export class DataTableBodyComponent {
   @Input() limit: number;
   @Input() pageSize: number;
   @Input() rowIdentity: any;
+  @Input() rowDetailTemplate: any;
 
-   @Input() set rows(val: any[]) {
+  @Input() set rows(val: any[]) {
     this._rows = val;
     this.refreshRowHeightCache();
     this.updateIndexes();
@@ -369,20 +370,17 @@ export class DataTableBodyComponent {
       rows: [row], 
       currentIndex: viewPortFirstRowIndex 
     });
-
-    // Broadcast the event to let know that the rows array has been updated.
-    // this.onRowsUpdate.emit(this.rows);
   }
 
   /**
    * Expand/Collapse all the rows no matter what their state is.
-   *
    * @param expanded When true, all rows are expanded and when false, all rows will be collapsed.
    */
   toggleAllRows(expanded: boolean): void {
     let rowExpanded = expanded ? 1 : 0;
+    
     // Capture the row index of the first row that is visible on the viewport.
-    let viewPortFirstRowIndex =  this.getAdjustedViewPortIndex();
+    let viewPortFirstRowIndex = this.getAdjustedViewPortIndex();
 
     this.rows.forEach((row: any) => {
       row.$$expanded = rowExpanded;
@@ -398,9 +396,6 @@ export class DataTableBodyComponent {
       rows: this.rows, 
       currentIndex: viewPortFirstRowIndex 
     });
-
-    // Broadcast the event to let know that the rows array has been updated.
-    // this.onRowsUpdate.emit(this.rows);
   }
 
 }

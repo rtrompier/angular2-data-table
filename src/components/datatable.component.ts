@@ -43,6 +43,7 @@ import { scrollbarWidth, setColumnDefaults } from '../utils';
         [pageSize]="pageSize"
         [offsetX]="offsetX"
         [offsetY]="offsetY"
+        [rowDetailTemplate]="rowDetailTemplate"
         [detailRowHeight]="detailRowHeight"
         [selected]="selected"
         [bodyWidth]="innerWidth"
@@ -53,7 +54,7 @@ import { scrollbarWidth, setColumnDefaults } from '../utils';
         (page)="onBodyPage($event)"
         (activate)="activate.emit($event)"
         (select)="select.emit($event)"
-        (detailToggle)="toggle.emit($event)">
+        (detailToggle)="detailToggle.emit($event)">
       </datatable-body>
       <datatable-footer
         *ngIf="footerHeight"
@@ -285,21 +286,21 @@ export class DatatableComponent implements OnInit, AfterViewInit {
    */
   toggleExpandRow(row: any) {
     // Should we write a guard here??
-    // this.toggleRowExpansion(row);
+    this.bodyComponent.toggleRowExpansion(row);
   }
 
   /**
    * API method to expand all the rows.
    */
   expandAllRows() {
-    // this.toggleAllRows(true);
+    this.bodyComponent.toggleAllRows(true);
   }
 
   /**
    * API method to collapse all the rows.
    */
   collapseAllRows() {
-    // this.toggleAllRows(false);
+    this.bodyComponent.toggleAllRows(false);
   }
 
   @HostListener('window:resize')
