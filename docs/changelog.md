@@ -5,6 +5,7 @@
 - Feature: `activation` events
 - Enhancement: `OnPush` all the things!
 - Enhancement: Demo Page
+- Enhancement: Page Count Formatted
 - Chore: Switch to SemVer
 
 ### Breaking Changes
