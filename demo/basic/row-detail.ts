@@ -1,5 +1,4 @@
 import { Component, ViewEncapsulation, ViewChild } from '@angular/core';
-import '../themes/material.scss';
 
 @Component({
   selector: 'app',

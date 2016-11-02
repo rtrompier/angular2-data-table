@@ -37,15 +37,16 @@ function webpackConfig(options = {}) {
       extensions: ['.ts', '.js', '.json', '.css', '.scss', '.html'],
       modules: [
         'node_modules',
-        root('src')
+        root('src'),
+        root('demo')
       ]
     },
 
     entry: {
       'default': './src/components/datatable.scss',
-      'app': './src/demos/bootstrap.ts',
-      'polyfills': './src/polyfills.ts',
-      'vendor': './src/vendor.ts'
+      'app': './demo/bootstrap.ts',
+      'polyfills': './demo/polyfills.ts',
+      'vendor': './demo/vendor.ts'
     },
 
     devServer: {
@@ -138,10 +139,6 @@ function webpackConfig(options = {}) {
         'APP_VERSION': VERSION
       }),
 
-      new ProgressBarPlugin({
-        format: chalk.yellow.bold('Webpack Building...') + ' [:bar] ' + chalk.green.bold(':percent') + ' (:elapsed seconds)'
-      }),
-
       new webpack.LoaderOptionsPlugin({
         options: {
           context: root(),
@@ -160,9 +157,7 @@ function webpackConfig(options = {}) {
 
   if(IS_HMR) {
     config.plugins.push(new webpack.HotModuleReplacementPlugin());
-  }
-
-  if(!IS_HMR) {
+  } else {
     config.plugins.push(new CleanWebpackPlugin(['dist'], {
       root: root(),
       verbose: false,
@@ -207,13 +202,18 @@ function webpackConfig(options = {}) {
       entryOnly: true
     }));
   } else {
+    config.plugins.push(new ProgressBarPlugin({
+      format: chalk.yellow.bold('Webpack Building...') + 
+        ' [:bar] ' + chalk.green.bold(':percent') + ' (:elapsed seconds)'
+    }));
+
     config.plugins.push(new webpack.optimize.CommonsChunkPlugin({
       name: ['vendor', 'polyfills'],
       minChunks: Infinity
     }));
 
     config.plugins.push(new HtmlWebpackPlugin({
-      template: 'src/index.html',
+      template: 'demo/index.html',
       chunksSortMode: 'dependency',
       title: 'angular2-data-table'
     }));

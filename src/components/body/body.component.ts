@@ -66,7 +66,6 @@ export class DataTableBodyComponent {
   @Input() loadingIndicator: boolean;
   @Input() rowHeight: number;
   @Input() offsetX: number;
-  @Input() offsetY: number;
   @Input() detailRowHeight: any;
   @Input() emptyMessage: string;
   @Input() selectionType: SelectionType;
@@ -146,6 +145,7 @@ export class DataTableBodyComponent {
     return this._bodyHeight; 
   }
 
+  @Output() scroll: EventEmitter<any> = new EventEmitter();
   @Output() page: EventEmitter<any> = new EventEmitter();
   @Output() activate: EventEmitter<any> = new EventEmitter();
   @Output() select: EventEmitter<any> = new EventEmitter();
@@ -153,10 +153,15 @@ export class DataTableBodyComponent {
 
   @ViewChild(ScrollerComponent) scroller: ScrollerComponent;
 
+  get selectEnabled(): boolean {
+    return !!this.selectionType;
+  }
+
   private rowHeightsCache: RowHeightCache = new RowHeightCache();
   private temp: any[] = [];
   private indexes: any;
   private columnGroupWidths: any;
+  private offsetY: number;
 
   private _rows: any[];
   private _bodyHeight: any;
@@ -164,10 +169,6 @@ export class DataTableBodyComponent {
   private _columns: any[];
   private _rowCount: number;
   private _offset: number;
-
-  get selectEnabled(): boolean {
-    return !!this.selectionType;
-  }
 
   /**
    * Property that would calculate the height of scroll bar
@@ -194,12 +195,21 @@ export class DataTableBodyComponent {
     this.scroller.setOffset(offset || 0);
   }
 
-  onBodyScroll(props): void {
-    this.offsetY = props.scrollYPos;
-    this.offsetX = props.scrollXPos;
+  onBodyScroll({ scrollYPos, scrollXPos, direction }): void {
+    // if scroll change, trigger update
+    // this is mainly used for header cell positions
+    if(this.offsetY !== scrollYPos || this.offsetX !== scrollXPos) {
+      this.scroll.emit({ 
+        offsetY: scrollYPos,
+        offsetX: scrollXPos
+      });
+    }
+    
+    this.offsetY = scrollYPos;
+    this.offsetX = scrollXPos;
 
     this.updateIndexes();
-    this.updatePage(props.direction);
+    this.updatePage(direction);
     this.updateRows();
   }
 

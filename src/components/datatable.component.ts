@@ -42,7 +42,6 @@ import { scrollbarWidth, setColumnDefaults } from '../utils';
         [columns]="columns"
         [pageSize]="pageSize"
         [offsetX]="offsetX"
-        [offsetY]="offsetY"
         [rowDetailTemplate]="rowDetailTemplate"
         [detailRowHeight]="detailRowHeight"
         [selected]="selected"
@@ -54,7 +53,8 @@ import { scrollbarWidth, setColumnDefaults } from '../utils';
         (page)="onBodyPage($event)"
         (activate)="activate.emit($event)"
         (select)="select.emit($event)"
-        (detailToggle)="detailToggle.emit($event)">
+        (detailToggle)="detailToggle.emit($event)"
+        (scroll)="onBodyScroll($event)">
       </datatable-body>
       <datatable-footer
         *ngIf="footerHeight"
@@ -177,6 +177,7 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   // (`fn(x) === fn(y)` instead of `x === y`)
   @Input() rowIdentity = ((x) => x);
 
+  @Output() scroll: EventEmitter<any> = new EventEmitter();
   @Output() activate: EventEmitter<any> = new EventEmitter();
   @Output() select: EventEmitter<any> = new EventEmitter();
   @Output() sort: EventEmitter<any> = new EventEmitter();
@@ -234,7 +235,6 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   }
   
   offsetX: number = 0;
-  offsetY: number = 0;
 
   @ViewChild(DataTableBodyComponent)
   private bodyComponent: DataTableBodyComponent;
@@ -324,6 +324,11 @@ export class DatatableComponent implements OnInit, AfterViewInit {
   onBodyPage({ offset }) {
     this.offset = offset;
     this.page.emit(event);
+  }
+
+  onBodyScroll(event) {
+    this.offsetX = event.offsetX;
+    this.scroll.emit(event);
   }
 
   onFooterPage(event) {

@@ -2,8 +2,9 @@ import { NgModule, ApplicationRef } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { removeNgStyles, createNewHosts } from '@angularclass/hmr';
 
-import { Angular2DataTableModule } from '../index';
-import '../components/datatable.scss';
+import { Angular2DataTableModule } from '../src';
+import '../src/components/datatable.scss';
+import '../src/themes/material.scss';
 
 // -- Basic
 // import { App } from './basic-fixed';
@@ -11,9 +12,9 @@ import '../components/datatable.scss';
 // import { App } from './virtual';
 // import { App } from './inline';
 // import { App } from './scrolling';
-// import { App } from './multiple';
-// import { App } from './fullscreen';
-import { App } from './row-detail';
+import { App } from './basic/multiple';
+// import { App } from './basic/fullscreen';
+// import { App } from './basic/row-detail';
 
 // -- Paging
 // import { App } from './paging-client';

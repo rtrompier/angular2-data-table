@@ -1,16 +1,20 @@
 import { Component } from '@angular/core';
-import { ColumnMode, TableOptions } from '../index';
-import '../themes/material.scss';
 
 @Component({
   selector: 'app',
   template: `
     <div>
+      <h3>Full Screen</h3>
       <datatable
-        class='material'
-        style="position:absolute;top:0;left:0;right:0;bottom:0;width:100%;height:100vh;"
-        [rows]='rows'
-        [options]='options'>
+        class="material fullscreen"
+        style="top: 50px"
+        [columnMode]="'force'"
+        [headerHeight]="50"
+        [footerHeight]="0"
+        [rowHeight]="50"
+        [scrollbarV]="true"
+        [scrollbarH]="true"
+        [rows]="rows">
         <datatable-column name="Id" [width]="80"></datatable-column>
         <datatable-column name="Name" [width]="300"></datatable-column>
         <datatable-column name="Gender"></datatable-column>
@@ -24,19 +28,9 @@ import '../themes/material.scss';
 export class App {
 
   rows = [];
-
-  options = new TableOptions({
-    columnMode: ColumnMode.force,
-    headerHeight: 50,
-    footerHeight: 0,
-    rowHeight: 50,
-    scrollbarV: true,
-    scrollbarH: true
-  });
-
   constructor() {
     this.fetch((data) => {
-      this.rows.push(...data);
+      this.rows = data;
     });
   }
 
